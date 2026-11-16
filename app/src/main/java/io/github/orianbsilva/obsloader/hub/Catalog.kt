@@ -13,7 +13,7 @@ import java.net.URL
 
 const val HUB = "https://thefirmwarehub.com"
 const val CATALOG_URL = "$HUB/catalog.json"
-val USER_AGENT = "ObsLoader/${BuildConfig.VERSION_NAME} (Android; +https://github.com/orianbsilva/obsloader)"
+val USER_AGENT = "ObsLoader/${BuildConfig.VERSION_NAME} (Android; +https://github.com/orianbsilva/fm1-emulator)"
 
 /** one firmware of the list (the fields the app uses) */
 data class Firmware(

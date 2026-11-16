@@ -26,7 +26,7 @@ carries it): the unit tests check the Kotlin port against its bytes.
 
 ## Install
 
-The APK is on the [releases](https://github.com/orianbsilva/obsloader/releases) (a debug-signed pre-release for now).
+The APK is on the [releases](https://github.com/orianbsilva/fm1-emulator/releases): `ObsLoader-VERSION.apk`, signed with the project's key (each version installs over the last).
 Android 8 or newer with USB host (OTG) and MIDI. Connect the FM-1 with a USB **data** cable and an OTG adapter.
 
 ## Build
@@ -55,4 +55,4 @@ Firmwares para o **M-VAVE FM-1** no celular Android: a lista do [The Firmware Hu
 pacote da release do seu autor no GitHub, instalado por USB-MIDI com um cabo OTG; e os simuladores, para experimentar
 um firmware antes de ele ir para o FM-1. Baixa um ou todos (para usar offline), confere o sha256 com o do hub, instala,
 termina uma atualização interrompida e volta ao V15 da M-VAVE. Guarda vários firmwares e troca entre eles com um toque; um teclado MIDI (USB por hub OTG, ou Bluetooth) toca o FM-1 pelo celular e toca os simuladores. O simulador do ObsSynth FM-1 vem embutido e toca
-offline. O APK está nas [releases](https://github.com/orianbsilva/obsloader/releases).
+offline. O APK está nas [releases](https://github.com/orianbsilva/fm1-emulator/releases).

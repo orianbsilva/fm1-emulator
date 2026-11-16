@@ -40,7 +40,7 @@ fun AboutScreen(m: AppModel, mod: Modifier, open: (String) -> Unit) {
         Para(stringResource(R.string.about_fw))
         Text(stringResource(R.string.about_app_title), style = MaterialTheme.typography.titleSmall)
         Para(stringResource(R.string.about_app))
-        Link("github.com/orianbsilva/obsloader", "https://github.com/orianbsilva/obsloader")
+        Link("github.com/orianbsilva/fm1-emulator", "https://github.com/orianbsilva/fm1-emulator")
         Link("ObsSynth FM-1 (github.com/orianbsilva/obssynth-fm1)", "https://github.com/orianbsilva/obssynth-fm1")
         Link("Felucca (Hügelton Instruments)", "https://github.com/hugelton/Felucca")
         Spacer(Modifier.height(10.dp))

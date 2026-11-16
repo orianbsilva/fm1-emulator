@@ -15,12 +15,22 @@ android {
         versionName = "0.1.0"
     }
 
+    // the release key: from the environment (RELEASE_KEYSTORE, RELEASE_KEYSTORE_PASS), kept outside the tree
+    val keystore = System.getenv("RELEASE_KEYSTORE")
+    signingConfigs {
+        if (keystore != null) create("release") {
+            storeFile = file(keystore)
+            storePassword = System.getenv("RELEASE_KEYSTORE_PASS")
+            keyAlias = "fm1emulator"
+            keyPassword = System.getenv("RELEASE_KEYSTORE_PASS")
+        }
+    }
     buildTypes {
         release {
+            if (keystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // signed in CI (release.yml) with the project's key; a local release build stays unsigned
         }
     }
     compileOptions {
