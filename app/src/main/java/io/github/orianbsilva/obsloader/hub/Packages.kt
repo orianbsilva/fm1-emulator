@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The packages on the phone: each from its maker's GitHub release (never from the
+// FM-1 Pocket: 2026 Orian Beltrame. The packages on the phone: each from its maker's GitHub release (never from the
 // hub), kept only if its sha256 is the list's; with it, what the license asks to travel along (the license's name,
 // the source at its tag, the release). A firmware that leaves the list leaves the phone too.
 package io.github.orianbsilva.obsloader.hub

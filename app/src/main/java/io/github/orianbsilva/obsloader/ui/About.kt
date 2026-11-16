@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. What the app is, and whose work it stands on.
+// FM-1 Pocket: 2026 Orian Beltrame. What the app is, and whose work it stands on.
 package io.github.orianbsilva.obsloader.ui
 
 import androidx.compose.foundation.clickable
@@ -42,7 +42,7 @@ fun AboutScreen(m: AppModel, mod: Modifier, open: (String) -> Unit) {
         }
     }
     Column(mod.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        Text("FM1 Emulator " + BuildConfig.VERSION_NAME, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Amber)
+        Text("FM-1 Pocket " + BuildConfig.VERSION_NAME, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Amber)
         Text(stringResource(R.string.about_what), style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.credits_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -64,7 +64,7 @@ fun AboutScreen(m: AppModel, mod: Modifier, open: (String) -> Unit) {
             Link("Hortator (DEADACTIVE)", "https://github.com/deadactive/hortator")
         }
         Credit(stringResource(R.string.about_app_title), "Orian Beltrame", stringResource(R.string.about_app)) {
-            Link("github.com/orianbsilva/fm1-emulator", "https://github.com/orianbsilva/fm1-emulator")
+            Link("github.com/orianbsilva/fm1-pocket", "https://github.com/orianbsilva/fm1-pocket")
         }
         Spacer(Modifier.height(10.dp))
         Text(stringResource(R.string.about_trademarks), style = MaterialTheme.typography.bodySmall)

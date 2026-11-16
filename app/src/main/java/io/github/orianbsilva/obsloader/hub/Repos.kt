@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. Firmwares that are not on The Firmware Hub's list (yet): a GitHub repository the
+// FM-1 Pocket: 2026 Orian Beltrame. Firmwares that are not on The Firmware Hub's list (yet): a GitHub repository the
 // person adds, its newest release with a .fwsc attached. Nobody checked these (no list sha256, identity or loader
 // check): they play in the emulator as they are; installing one on a real FM-1 asks for the update loader.
 package io.github.orianbsilva.obsloader.hub

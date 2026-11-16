@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The hub's list, and one firmware's card.
+// FM-1 Pocket: 2026 Orian Beltrame. The hub's list, and one firmware's card.
 package io.github.orianbsilva.obsloader.ui
 
 import android.graphics.BitmapFactory

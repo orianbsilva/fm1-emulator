@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The simulators: ObsSynth FM-1's, built into the app (it runs offline), and the
+// FM-1 Pocket: 2026 Orian Beltrame. The simulators: ObsSynth FM-1's, built into the app (it runs offline), and the
 // browser versions the makers publish (their "play" pages), in a WebView.
 package io.github.orianbsilva.obsloader.ui
 

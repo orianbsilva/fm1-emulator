@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "FM1-Emulator"
+rootProject.name = "FM-1-Pocket"
 include(":app")

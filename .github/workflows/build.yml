@@ -31,9 +31,9 @@ jobs:
       - name: Tests and APK
         run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug
       - name: Name the APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk "FM1-Emulator-${GITHUB_REF_NAME//\//-}-debug.apk"
+        run: cp app/build/outputs/apk/debug/app-debug.apk "FM-1-Pocket-${GITHUB_REF_NAME//\//-}-debug.apk"
       - uses: actions/upload-artifact@v4
         with:
-          name: FM1-Emulator-apk
-          path: FM1-Emulator-*-debug.apk
+          name: FM-1-Pocket-apk
+          path: FM-1-Pocket-*-debug.apk
 

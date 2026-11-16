@@ -1,4 +1,4 @@
-# FM1 Emulator
+# FM-1 Pocket
 
 [Português](#português)
 
@@ -28,7 +28,7 @@ the app (About) and in `app/src/main/assets/licenses/fm1-emu-MIT.txt`.
 
 ## Install
 
-The APK is on the [releases](https://github.com/orianbsilva/fm1-emulator/releases): `FM1-Emulator-VERSION.apk`,
+The APK is on the [releases](https://github.com/orianbsilva/fm1-pocket/releases): `FM-1-Pocket-VERSION.apk`,
 signed with the project's key (each version installs over the last). Android 8 or newer, 64-bit (arm64 or x86-64).
 
 ## Build
@@ -62,4 +62,4 @@ Um **emulador do M-VAVE FM-1** para Android: os próprios firmwares, os pacotes 
 emulado, tocados com os dedos, um teclado MIDI ou os knobs de um controlador; offline depois de baixados. A emulação
 é o [fm1-emu](https://github.com/joakimeriksson/fm1-emu), de Joakim Eriksson (MIT). Também: a lista do The Firmware
 Hub, repositórios que ainda não estão nela, as versões de navegador dos autores e a instalação num FM-1 de verdade por
-USB. O APK está nas [releases](https://github.com/orianbsilva/fm1-emulator/releases).
+USB. O APK está nas [releases](https://github.com/orianbsilva/fm1-pocket/releases).

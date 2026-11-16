@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: Web MIDI (navigator.requestMIDIAccess) over the app's bridge (obsMidi, MidiBridge.kt): the phone's MIDI
+// FM-1 Pocket: Web MIDI (navigator.requestMIDIAccess) over the app's bridge (obsMidi, MidiBridge.kt): the phone's MIDI
 // devices as MIDIInput and MIDIOutput, their state changes as statechange.
 (() => {
   // (Android's WebView may have a requestMIDIAccess of its own that sees no device: this one replaces it)

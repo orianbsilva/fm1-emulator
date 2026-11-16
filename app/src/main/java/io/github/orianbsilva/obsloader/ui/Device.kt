@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The FM-1 on USB: what it runs, its flash chip, installing, the way back.
+// FM-1 Pocket: 2026 Orian Beltrame. The FM-1 on USB: what it runs, its flash chip, installing, the way back.
 package io.github.orianbsilva.obsloader.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult

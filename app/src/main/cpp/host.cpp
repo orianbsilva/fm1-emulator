@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The emulator's host. The FM-1 itself is fm1-emu's (Joakim Eriksson, MIT,
+// FM-1 Pocket: 2026 Orian Beltrame. The emulator's host. The FM-1 itself is fm1-emu's (Joakim Eriksson, MIT,
 // https://github.com/joakimeriksson/fm1-emu): its two JieLi cores (compiled to native code), screen, keys, knobs,
 // flash, MIDI IN and I2S audio, running an update package (.fwsc) unchanged, from libfm1_web.so's C API. Here: a
 // thread of its own runs the machine (urgent audio priority) a little ahead of the sound, into a ring; the AAudio

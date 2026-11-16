@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The FM-1's update protocol, after Felucca's installer (tools/fm1_install.py in
+// FM-1 Pocket: 2026 Orian Beltrame. The FM-1's update protocol, after Felucca's installer (tools/fm1_install.py in
 // obssynth-fm1, (C) 2026 Leo Kuroshita, Hügelton Instruments, GPL-3.0): the handshake, the identity, the read requests
 // the device sends during an update and our answers, and the package (.fwsc) and its logical image.
 package io.github.orianbsilva.obsloader.fm1

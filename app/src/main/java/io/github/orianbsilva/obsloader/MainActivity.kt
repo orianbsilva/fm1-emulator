@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. Firmwares for the M-VAVE FM-1 from The Firmware Hub's list, installed over USB.
+// FM-1 Pocket: 2026 Orian Beltrame. Firmwares for the M-VAVE FM-1 from The Firmware Hub's list, installed over USB.
 package io.github.orianbsilva.obsloader
 
 import android.os.Bundle

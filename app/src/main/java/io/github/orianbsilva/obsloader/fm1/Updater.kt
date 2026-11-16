@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. Installing a package on an FM-1, as Felucca's installer does it (fm1_install.py):
+// FM-1 Pocket: 2026 Orian Beltrame. Installing a package on an FM-1, as Felucca's installer does it (fm1_install.py):
 // step 1, the running firmware reads parts of the package and starts the update loader; step 2, the loader reads the
 // whole package and writes it; then the FM-1 restarts and its identity is checked. In both steps the device asks
 // (read requests on the logical image) and we answer. An FM-1 already in update mode only needs step 2.

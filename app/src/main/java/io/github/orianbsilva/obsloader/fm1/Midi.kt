@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The FM-1 over USB-MIDI with Android's MIDI API (android.media.midi): finding it,
+// FM-1 Pocket: 2026 Orian Beltrame. The FM-1 over USB-MIDI with Android's MIDI API (android.media.midi): finding it,
 // opening one in/out pair, SysEx out in pieces the API takes, SysEx in reassembled from the pieces it gives.
 package io.github.orianbsilva.obsloader.fm1
 

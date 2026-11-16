@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The emulator's host (src/main/cpp/host.cpp) over JNI; the FM-1 is fm1-emu's
+// FM-1 Pocket: 2026 Orian Beltrame. The emulator's host (src/main/cpp/host.cpp) over JNI; the FM-1 is fm1-emu's
 // (Joakim Eriksson, MIT), libfm1_web.so.
 package io.github.orianbsilva.obsloader.emu
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. A MIDI keyboard plays the FM-1 through the phone: what the keyboard sends (notes,
+// FM-1 Pocket: 2026 Orian Beltrame. A MIDI keyboard plays the FM-1 through the phone: what the keyboard sends (notes,
 // the wheels, the controllers, the clock; never SysEx) goes to the FM-1's USB-MIDI in. Both on USB through a hub, or
 // the keyboard on Bluetooth.
 package io.github.orianbsilva.obsloader.midi

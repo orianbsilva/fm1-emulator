@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The emulated FM-1 on the phone's screen: the firmware's own screen, the knobs (drag
+// FM-1 Pocket: 2026 Orian Beltrame. The emulated FM-1 on the phone's screen: the firmware's own screen, the knobs (drag
 // up and down; MIDI learn gives one to a controller's CC), the buttons with their LEDs, OCT and the 27 keys (several
 // fingers, sliding from key to key). Upright: the panel above the keys; sideways: as the FM-1 lies.
 package io.github.orianbsilva.obsloader.ui

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. A firmware package running on the emulated FM-1 (Native: fm1-emu), its flash kept
+// FM-1 Pocket: 2026 Orian Beltrame. A firmware package running on the emulated FM-1 (Native: fm1-emu), its flash kept
 // between runs (each exact package its own), and the MIDI that plays it: every MIDI device the phone has (a USB
 // keyboard, a Bluetooth one Android knows, an FM-1's own keys) goes into the MIDI IN jack, as a cable would; a
 // controller's CC can turn the panel's knobs instead (MIDI learn).

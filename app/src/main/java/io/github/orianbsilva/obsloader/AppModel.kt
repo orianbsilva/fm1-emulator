@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// FM1 Emulator: 2026 Orian Beltrame. The app's state: the hub's list, the packages on the phone, the FM-1 on USB and an
+// FM-1 Pocket: 2026 Orian Beltrame. The app's state: the hub's list, the packages on the phone, the FM-1 on USB and an
 // install in progress. One ViewModel for the whole app (a few screens over the same data).
 package io.github.orianbsilva.obsloader
 
