@@ -104,16 +104,21 @@ fun WebScreen(url: String, close: () -> Unit) {
 }
 
 @Composable
-fun SimScreen(m: AppModel, mod: Modifier, open: (String) -> Unit) {
+fun SimScreen(m: AppModel, mod: Modifier, play: (String) -> Unit, open: (String) -> Unit) {
     val plays = m.catalog?.firmwares?.filter { it.play != null }.orEmpty()
     LazyColumn(mod.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
+        items(io.github.orianbsilva.obsloader.emu.Cores.ALL, key = { "core:" + it.id }) { c ->
             Card(colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainer)) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("ObsSynth FM-1", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Amber)
-                    Text(stringResource(R.string.sim_builtin), style = MaterialTheme.typography.bodySmall)
+                    Text(c.name + " " + c.version, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Amber)
+                    Text(stringResource(R.string.emu_native_help), style = MaterialTheme.typography.bodySmall)
                     Text(stringResource(R.string.sim_midi), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
-                    Button({ open(builtInSim()) }, Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.sim_open)) }
+                    Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button({ play(c.id) }) { Text(stringResource(R.string.emu_play_native)) }
+                        if (c.id == "obssynth-fm1") androidx.compose.material3.OutlinedButton({ open(builtInSim()) }) { Text(stringResource(R.string.sim_web)) }
+                    }
+                    m.emulator.failed?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                    Text(c.credits, Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

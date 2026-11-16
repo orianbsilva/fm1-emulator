@@ -126,4 +126,15 @@
     <string name="thru_gone">O teclado sumiu.</string>
     <string name="thru_failed">O teclado ou o FM-1 não abriu (outro app usando?).</string>
     <string name="sim_midi">Um teclado MIDI no celular (USB por um hub OTG, ou Bluetooth) toca os simuladores: ligue o simulador e toque.</string>
+    <string name="emu_play_native">Tocar aqui</string>
+    <string name="emu_native_help">O próprio firmware, o código C dele compilado para o celular: a tela, os knobs (arraste para cima ou para baixo), os botões e as 27 teclas, tocados com os dedos, um teclado MIDI ou os knobs de um controlador (MIDI learn). Os presets e as configurações ficam guardados.</string>
+    <string name="sim_web">Versão do navegador</string>
+    <string name="emu_no_midi">Sem entrada MIDI: ligue um teclado (USB por um hub OTG, ou Bluetooth)</string>
+    <string name="emu_midi_in">Entrada MIDI: %1$s</string>
+    <string name="emu_cc_title">Knobs de um controlador</string>
+    <string name="emu_cc_help">Um knob do controlador (um CC MIDI) pode girar um do painel: toque em Aprender e mexa o knob do controlador. Os outros CCs, as notas, as rodas e a pressão vão para o firmware como pelo USB.</string>
+    <string name="emu_learn">Aprender</string>
+    <string name="emu_learning">Mexa um knob do controlador para %1$s (toque aqui para parar)</string>
+    <string name="emu_erase_help">A memória do firmware no celular (seus presets, as configurações):</string>
+    <string name="emu_erase">Apagar (estado de fábrica)</string>
 </resources>

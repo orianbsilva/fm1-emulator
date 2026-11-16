@@ -22,7 +22,7 @@ jobs:
       - name: Platform 37 (the runner's SDK)
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" > /dev/null
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;4.1.2" > /dev/null
           ls "$ANDROID_HOME/platforms"
       - name: Tests and APK
         run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug

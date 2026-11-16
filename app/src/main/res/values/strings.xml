@@ -127,4 +127,15 @@
     <string name="thru_gone">The keyboard is gone.</string>
     <string name="thru_failed">The keyboard or the FM-1 would not open (another app using it?).</string>
     <string name="sim_midi">A MIDI keyboard on the phone (USB through an OTG hub, or Bluetooth) plays the simulators: switch the simulator on and play.</string>
+    <string name="emu_play_native">Play it here</string>
+    <string name="emu_native_help">The firmware itself, its C code built for the phone: its screen, the knobs (drag up or down), the buttons and the 27 keys, played with your fingers, a MIDI keyboard or a controller\'s knobs (MIDI learn). Its presets and settings are kept.</string>
+    <string name="sim_web">Browser version</string>
+    <string name="emu_no_midi">No MIDI input: connect a keyboard (USB through an OTG hub, or Bluetooth)</string>
+    <string name="emu_midi_in">MIDI in: %1$s</string>
+    <string name="emu_cc_title">Knobs from a controller</string>
+    <string name="emu_cc_help">A controller\'s knob (a MIDI CC) can turn one of the panel\'s: touch Learn, then move the controller\'s knob. The other CCs, the notes, the wheels and pressure go to the firmware as from USB.</string>
+    <string name="emu_learn">Learn</string>
+    <string name="emu_learning">Move a knob on the controller for %1$s (touch here to stop)</string>
+    <string name="emu_erase_help">The firmware\'s memory on the phone (your presets, its settings):</string>
+    <string name="emu_erase">Erase it (factory state)</string>
 </resources>

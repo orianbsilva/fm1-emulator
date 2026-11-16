@@ -48,6 +48,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     val packages = PackageStore(files)
     val pictures = PictureStore(app.cacheDir)
     val usb = Fm1Usb(app)
+    val emulator = io.github.orianbsilva.obsloader.emu.Emulator(app)
     private val updater = Updater(usb)
 
     var catalog by mutableStateOf<Catalog?>(null); private set

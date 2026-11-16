@@ -48,7 +48,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             ObsTheme {
                 val m = model
-                var tab by rememberSaveable { mutableStateOf(0) }
+                var tab by rememberSaveable { mutableStateOf(0) }   // 0 Play, 1 Firmwares, 2 FM-1, 3 About
+                var running by rememberSaveable { mutableStateOf<String?>(null) }   // a core on the phone's screen
                 var detail by rememberSaveable { mutableStateOf<String?>(null) }
                 var web by rememberSaveable { mutableStateOf<String?>(null) }
                 val snack = remember { SnackbarHostState() }
@@ -59,6 +60,16 @@ class MainActivity : ComponentActivity() {
                     else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 }
                 BackHandler(web != null || detail != null) { if (web != null) web = null else detail = null }
+                val core = running?.let { id -> io.github.orianbsilva.obsloader.emu.Cores.ALL.firstOrNull { it.id == id } }
+                LaunchedEffect(core) {
+                    if (core != null) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    else if (!m.installing) window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                if (core != null) {
+                    BackHandler { m.emulator.stop(); running = null }
+                    io.github.orianbsilva.obsloader.ui.EmuScreen(m.emulator, core) { running = null }
+                    return@ObsTheme
+                }
                 val w = web
                 if (w != null) {
                     WebScreen(w) { web = null }
@@ -69,9 +80,9 @@ class MainActivity : ComponentActivity() {
                     bottomBar = {
                         NavigationBar {
                             val items = listOf(
-                                Triple(R.string.tab_firmwares, Icons.Default.List, 0),
-                                Triple(R.string.tab_device, Icons.Default.Usb, 1),
-                                Triple(R.string.tab_sim, Icons.Default.PlayArrow, 2),
+                                Triple(R.string.tab_sim, Icons.Default.PlayArrow, 0),
+                                Triple(R.string.tab_firmwares, Icons.Default.List, 1),
+                                Triple(R.string.tab_device, Icons.Default.Usb, 2),
                                 Triple(R.string.tab_about, Icons.Default.Info, 3),
                             )
                             for ((label, icon, i) in items) NavigationBarItem(
@@ -83,10 +94,10 @@ class MainActivity : ComponentActivity() {
                     val mod = Modifier.padding(pad)
                     val d = detail?.let { id -> m.catalog?.firmwares?.firstOrNull { it.id == id } }
                     when {
-                        tab == 0 && d != null -> DetailScreen(m, d, mod, onBack = { detail = null }, onWeb = { web = it }, onInstall = { m.prepare(d); tab = 1 })
-                        tab == 0 -> FirmwaresScreen(m, mod) { detail = it.id }
-                        tab == 1 -> DeviceScreen(m, mod)
-                        tab == 2 -> SimScreen(m, mod) { web = it }
+                        tab == 1 && d != null -> DetailScreen(m, d, mod, onBack = { detail = null }, onWeb = { web = it }, onInstall = { m.prepare(d); tab = 2 })
+                        tab == 1 -> FirmwaresScreen(m, mod) { detail = it.id }
+                        tab == 2 -> DeviceScreen(m, mod)
+                        tab == 0 -> SimScreen(m, mod, play = { running = it }) { web = it }
                         else -> AboutScreen(m, mod) { web = it }
                     }
                 }

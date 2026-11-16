@@ -2,9 +2,16 @@
 
 [Português](#português)
 
-Firmwares for the **M-VAVE FM-1** on an Android phone: [The Firmware Hub](https://thefirmwarehub.com)'s list, each
-package from its maker's GitHub release, installed over USB-MIDI with an OTG cable; and the simulators, to try a
-firmware before it goes on the FM-1.
+An **FM-1 emulator** for Android: the firmware itself running on the phone, its screen, knobs, buttons and keys under
+your fingers, played from a MIDI keyboard, with a controller's knobs turning the panel's (MIDI learn). And the
+firmwares of [The Firmware Hub](https://thefirmwarehub.com)'s list: their browser versions, and their packages
+installed on a real FM-1 over USB.
+
+- **Play (the emulator):** [ObsSynth FM-1](https://github.com/orianbsilva/obssynth-fm1)'s C code built for the phone
+  (the NDK, its own simulator core, `app/src/main/cpp`), sound by AAudio at the firmware's 44.1 kHz with low latency.
+  Drag a knob up or down; several fingers on the keys, sliding from one to the next; the button and key lights as the
+  firmware sets them; upright or sideways. Every MIDI device the phone has plays it (notes, wheels, pressure, CC as
+  over USB); a CC can be learnt by a panel knob. Its presets and settings (its flash) are kept between runs.
 
 - **Firmwares:** the hub's list (read at most once a day), search and filters, each card with its maker's text,
   licence, source at the release's tag, flash chip and identity. Download one, or all of them for offline use: a
@@ -18,8 +25,7 @@ firmware before it goes on the FM-1.
 - **MIDI keyboard:** a keyboard on the phone (USB through an OTG hub, or Bluetooth) plays the FM-1 through the phone,
   and plays the simulators: the app gives its pages Web MIDI over Android's MIDI (the WebView's own sees no device),
   so the makers' browser versions and editors reach the keyboard and the FM-1 too.
-- **Play:** [ObsSynth FM-1](https://github.com/orianbsilva/obssynth-fm1)'s simulator built in (its C code in
-  WebAssembly: offline), and the makers' browser versions.
+- **Browser versions:** ObsSynth FM-1's page built in (offline), and the makers' own pages.
 
 The installer follows Felucca's (Leo Kuroshita, Hügelton Instruments; `tools/fm1_install.py` as ObsSynth FM-1
 carries it): the unit tests check the Kotlin port against its bytes.
@@ -32,7 +38,7 @@ Android 8 or newer with USB host (OTG) and MIDI. Connect the FM-1 with a USB **d
 ## Build
 
 ```
-./gradlew :app:testDebugUnitTest :app:assembleDebug     # Android SDK with platform 37; JDK 17 or newer
+./gradlew :app:testDebugUnitTest :app:assembleDebug     # Android SDK with platform 37, NDK 29, CMake 4.1; JDK 17+
 ```
 
 ## The list and the firmwares
@@ -46,12 +52,15 @@ Unofficial firmware, free and without warranty: you install it at your own risk.
 
 ## License
 
-GPL-3.0 ([LICENSE](LICENSE)). The built-in simulator is ObsSynth FM-1's (GPL-3.0), with its sources and credits in
-[obssynth-fm1](https://github.com/orianbsilva/obssynth-fm1).
+GPL-3.0 ([LICENSE](LICENSE)). The emulator's core and the built-in page are ObsSynth FM-1's (GPL-3.0, on Felucca and
+Hortator), with their sources and credits in [obssynth-fm1](https://github.com/orianbsilva/obssynth-fm1) and
+`app/src/main/cpp/cores/obssynth-fm1`.
 
 ## Português
 
-Firmwares para o **M-VAVE FM-1** no celular Android: a lista do [The Firmware Hub](https://thefirmwarehub.com), cada
+Um **emulador do FM-1** para Android: o próprio firmware rodando no celular, com a tela, os knobs, os botões e as
+teclas na ponta dos dedos, tocado por um teclado MIDI e com os knobs de um controlador girando os do painel (MIDI
+learn); os presets ficam guardados. Firmwares para o **M-VAVE FM-1** no celular Android: a lista do [The Firmware Hub](https://thefirmwarehub.com), cada
 pacote da release do seu autor no GitHub, instalado por USB-MIDI com um cabo OTG; e os simuladores, para experimentar
 um firmware antes de ele ir para o FM-1. Baixa um ou todos (para usar offline), confere o sha256 com o do hub, instala,
 termina uma atualização interrompida e volta ao V15 da M-VAVE. Guarda vários firmwares e troca entre eles com um toque; um teclado MIDI (USB por hub OTG, ou Bluetooth) toca o FM-1 pelo celular e toca os simuladores. O simulador do ObsSynth FM-1 vem embutido e toca
