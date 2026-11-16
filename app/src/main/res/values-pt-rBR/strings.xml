@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_firmwares">Firmwares</string>
+    <string name="tab_device">FM-1</string>
+    <string name="tab_sim">Tocar</string>
+    <string name="tab_about">Sobre</string>
+
+    <string name="search">Buscar nome, autor, texto</string>
+    <string name="on_phone">No celular</string>
+    <string name="loading">Carregando a lista…</string>
+    <string name="retry">Tentar de novo</string>
+    <string name="list_head">%1$d firmwares · lista de %2$s</string>
+    <string name="download_all">Baixar todos</string>
+    <string name="stop">Parar</string>
+    <string name="bulk_progress">Baixando %1$d de %2$d…</string>
+    <string name="bulk_waiting">%1$d de %2$d: limite do GitHub para apps sem conta, continua às %3$s</string>
+    <string name="bulk_done">%1$d baixados, %2$d falharam (veja o registro na aba FM-1)</string>
+    <string name="by">por %1$s</string>
+    <string name="tag_on_phone">no celular</string>
+    <string name="tag_update">versão nova</string>
+    <string name="tag_play">toca no navegador</string>
+    <string name="tag_oldchip">só os primeiros FM-1</string>
+    <string name="tag_maker_page">pela página do autor</string>
+    <string name="attribution">Lista de firmwares: The Firmware Hub – thefirmwarehub.com (CC BY 4.0; mostrada como é, filtrada no celular). Textos e imagens de cada autor.</string>
+
+    <string name="back">Voltar</string>
+    <string name="text_by_maker">Texto do autor.</string>
+    <string name="text_by_hub">Texto do hub.</string>
+    <string name="maker_page_only">Este se instala pela página do próprio autor (escreve mais que o pacote, ou não está no GitHub).</string>
+    <string name="open_maker_page">Abrir a página do autor</string>
+    <string name="install_on_fm1">Instalar no FM-1</string>
+    <string name="remove">Remover</string>
+    <string name="download">Baixar (%1$d KB)</string>
+    <string name="download_update">Baixar a versão nova (%1$d KB)</string>
+    <string name="play_browser">Tocar no navegador</string>
+    <string name="editor">Editor</string>
+    <string name="cheat">Cola</string>
+    <string name="talk">Issues</string>
+    <string name="f_licence">Licença</string>
+    <string name="f_source">Código</string>
+    <string name="f_release">Release</string>
+    <string name="f_chip">Chip de flash</string>
+    <string name="f_identity">Identidade</string>
+    <string name="f_loader">Loader</string>
+    <string name="f_sha">sha256</string>
+    <string name="f_stars">Estrelas · instalações</string>
+    <string name="chip_new">Todo FM-1, o chip novo (0xB36014) também</string>
+    <string name="chip_any">Todo FM-1 (não confere o chip)</string>
+    <string name="chip_old">Só os primeiros FM-1: num novo ele salva só na RAM</string>
+    <string name="disclaimer_short">Cada firmware é do seu autor, com a sua licença: dúvidas vão ao repositório dele. Você instala por sua conta e risco.</string>
+
+    <string name="no_midi">Este celular não tem suporte a MIDI (android.software.midi).</string>
+    <string name="dev_title">O FM-1</string>
+    <string name="dev_none">Ainda não encontrado. Ligue-o com um cabo USB de dados e um adaptador OTG.</string>
+    <string name="dev_loader">modo de atualização (uma atualização não terminou)</string>
+    <string name="dev_find">Procurar o FM-1</string>
+    <string name="dev_looking">Procurando…</string>
+    <string name="dev_cable">Só são consultados aparelhos cujo nome USB diz FM-1 (ou um firmware dele).</string>
+    <string name="chip_title">O chip de flash</string>
+    <string name="chip_help">Os FM-1 vendidos desde o outono de 2026 têm um chip de flash novo (0xB36014). Um firmware que só conhece o primeiro (0x856014) guarda os seus saves na RAM ali, e atualizar a partir dele pode falhar. O FM-1 não informa isso ao app: diga qual o seu tem, se souber.</string>
+    <string name="chip_unknown">Não sei (me avise)</string>
+    <string name="chip_first">Um dos primeiros (0x856014)</string>
+    <string name="chip_newer">O novo (0xB36014): esconder o que não o suporta</string>
+    <string name="inst_title">Instalar</string>
+    <string name="inst_none">Nenhum firmware no celular ainda: baixe um em Firmwares.</string>
+    <string name="install">Instalar</string>
+    <string name="inst_file">Um arquivo .fwsc do celular…</string>
+    <string name="back_title">Voltar ao firmware original</string>
+    <string name="back_help">O V15 da M-VAVE, sem mudanças, do próprio repositório da M-VAVE (fm1_open, Apache-2.0), conferido pelo sha256.</string>
+    <string name="back_get">Baixar o V15</string>
+    <string name="back_install">Instalar o V15</string>
+    <string name="back_rescue">Se o FM-1 não liga: segure OCT− e OCT+ por 5 s (o modo de boot do chip), ou veja thefirmwarehub.com/tools/rescue.</string>
+    <string name="progress_title">Andamento</string>
+    <string name="dont_unplug">Não desconecte o FM-1 nem saia do app enquanto ele grava.</string>
+    <string name="confirm_title">Instalar %1$s?</string>
+    <string name="confirm_text">Pacote %1$s no FM-1 que roda %2$s (%3$s). O firmware novo pode não ler os projetos do antigo: faça backup do que quer guardar. Deixe conectado até ele reiniciar.</string>
+    <string name="cancel">Cancelar</string>
+
+    <string name="err_rate">Limite do GitHub para apps sem conta: tente de novo às %1$s.</string>
+    <string name="err_download">%1$s: %2$s</string>
+    <string name="err_notfound">FM-1 não encontrado (cabo USB de dados? outro app usando?). Aparelhos MIDI: %1$s</string>
+    <string name="none">nenhum</string>
+    <string name="err_read">Não foi possível ler o arquivo.</string>
+    <string name="err_notpkg">Não é um pacote de FM-1 (.fwsc).</string>
+    <string name="err_noloader">Este pacote não tem o loader do Felucca e não está na lista do hub: instalá-lo pode deixar o FM-1 sem volta.</string>
+    <string name="err_oldchip">%1$s só conhece o chip de flash dos primeiros FM-1; o seu tem o novo.</string>
+    <string name="warn_oldchip">Esta versão só conhece o chip de flash dos primeiros FM-1: num FM-1 novo ela salva só na RAM, e atualizar a partir dela pode falhar.</string>
+    <string name="warn_unlisted">Este arquivo não está na lista do hub: ninguém o conferiu.</string>
+    <string name="warn_beta">Uma versão beta.</string>
+    <string name="warn_resume">O FM-1 está em modo de atualização: isto termina a gravação.</string>
+
+    <string name="step_start">Iniciando a atualização em %1$s</string>
+    <string name="step_check">Conferindo o pacote (%1$d leituras)</string>
+    <string name="step_loader">Passando para o modo de atualização</string>
+    <string name="step_write">Gravando %1$d%%</string>
+    <string name="step_reboot">Reiniciando</string>
+    <string name="step_done">Pronto: o FM-1 roda %1$s</string>
+    <string name="step_failed">Parou</string>
+
+    <string name="sim_builtin">O próprio código C do firmware, compilado para WebAssembly e embutido no app: toca offline, no alto-falante ou nos fones do celular.</string>
+    <string name="sim_open">Abrir o simulador</string>
+    <string name="sim_others">%1$d outros firmwares tocam no navegador</string>
+    <string name="sim_note">Os outros são as páginas dos próprios autores: precisam de internet.</string>
+
+    <string name="about_what">Firmwares para o M-VAVE FM-1: a lista do hub, cada pacote da release do seu autor, instalado por USB-MIDI com um cabo OTG; e os simuladores para experimentar antes.</string>
+    <string name="about_list_title">A lista</string>
+    <string name="about_list">Lista de firmwares: The Firmware Hub – thefirmwarehub.com, sob %1$s. Lida no máximo uma vez por dia; mostrada sem mudanças, filtrada e ordenada no celular. O texto e a imagem de cada card são do autor (do fmhub.json e do repositório dele).</string>
+    <string name="about_fw_title">Os firmwares</string>
+    <string name="about_fw">Cada um é do seu autor, com a sua licença (quase todos GPL-3.0 ou MPL-2.0): o card diz qual e leva ao código na tag da release. Os pacotes vêm das releases dos autores no GitHub, nunca do hub, e só são instalados se o sha256 for o que o hub conferiu.</string>
+    <string name="about_app_title">Este app</string>
+    <string name="about_app">O ObsLoader é software livre sob a GPL-3.0. O instalador segue o do Felucca (Leo Kuroshita, Hügelton Instruments), como o ObsSynth FM-1 o traz. Não é feito pela M-VAVE nem pelo The Firmware Hub, nem ligado a eles.</string>
+    <string name="about_trademarks">M-VAVE e FM-1 são marcas dos seus donos.</string>
+    <string name="disclaimer">Firmware não oficial, gratuito e sem garantia: você instala por sua conta e risco. Faça backup dos seus projetos antes.</string>
+</resources>

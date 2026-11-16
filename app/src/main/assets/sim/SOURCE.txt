@@ -1,0 +1,3 @@
+ObsSynth FM-1's simulator page (GPL-3.0), built from https://github.com/orianbsilva/obssynth-fm1 (web/sim, the
+firmware's C code compiled to WebAssembly by tools/build_sim.sh) at commit f7aea06 (v0.2.0). Its sources, licences
+and credits are there. tools/update_sim.sh in this repository copies a newer build.
