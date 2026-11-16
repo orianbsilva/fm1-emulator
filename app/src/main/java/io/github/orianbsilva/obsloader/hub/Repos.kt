@@ -18,8 +18,21 @@ class RepoStore(private val prefs: SharedPreferences, private val packages: Pack
 
     fun remove(repo: String) { save(list() - repo); packages.delete(idOf(repo)) }
 
-    /** the newest release (pre-releases too, as the hub does) that has a .fwsc */
+    /** the newest release (pre-releases too, as the hub does) that has a .fwsc: from the repository's public feed and
+     *  release pages (no GitHub API, whose limit for apps without an account is 60 calls an hour); the API only when
+     *  those give nothing */
     fun latest(repo: String): RepoRelease {
+        for (tag in PackageStore.releaseTags(repo).take(8)) {
+            val files = PackageStore.releaseFiles(repo, tag)
+            if (files.isNotEmpty()) {
+                val url = files.first()
+                return RepoRelease(repo, tag, tag, url.substringAfterLast('/'), url, 0, "https://github.com/$repo/releases/tag/$tag")
+            }
+        }
+        return latestApi(repo)
+    }
+
+    private fun latestApi(repo: String): RepoRelease {
         val arr = JSONArray(PackageStore.getText("https://api.github.com/repos/$repo/releases?per_page=10"))
         for (i in 0 until arr.length()) {
             val r = arr.getJSONObject(i)

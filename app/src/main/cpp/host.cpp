@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // FM1 Emulator: 2026 Orian Beltrame. The emulator's host. The FM-1 itself is fm1-emu's (Joakim Eriksson, MIT,
 // https://github.com/joakimeriksson/fm1-emu): its two JieLi cores (compiled to native code), screen, keys, knobs,
-// flash, MIDI IN and I2S audio, running an update package (.fwsc) unchanged, from libfm1_web.so's C API. Here: an
-// AAudio stream at 44.1 kHz whose callback runs the machine until it has produced the frames asked for (the audio
-// device paces the emulated clock, as fm1-emu's AudioWorklet does), the inputs queued from the app and applied there,
-// and the screen, the LEDs and the flash handed back over JNI. One machine at a time; another package reboots it.
+// flash, MIDI IN and I2S audio, running an update package (.fwsc) unchanged, from libfm1_web.so's C API. Here: a
+// thread of its own runs the machine (urgent audio priority) a little ahead of the sound, into a ring; the AAudio
+// callback (44.1 kHz) only copies from the ring, so an uneven block of emulation is not a click. The ring's lead grows
+// by itself where the phone falls behind (an underrun fades out instead of cutting). The inputs are queued from the
+// app and applied on that thread; the screen, the LEDs and the flash go back over JNI. One machine at a time.
 #include <aaudio/AAudio.h>
+#include <sys/resource.h>
+#include <unistd.h>
 #include <android/log.h>
 #include <dlfcn.h>
 #include <jni.h>
@@ -16,6 +19,8 @@
 #include <cstring>
 #include <mutex>
 #include <thread>
+#include <chrono>
+#include <condition_variable>
 #include <vector>
 
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, "fm1emu", __VA_ARGS__)
@@ -72,7 +77,21 @@ std::atomic<float> level{0};
 std::atomic<uint32_t> late{0};       // callbacks that could not produce their frames in time (the emulation too slow)
 AAudioStream *stream = nullptr;
 uint32_t lastLcd = ~0u;
-float outBuf[2 * 1024];
+
+// the ring between the emulation thread (writer) and the audio callback (reader): stereo frames
+constexpr uint32_t RING = 16384;
+float ring[2 * RING];
+std::atomic<uint32_t> ringW{0}, ringR{0};
+std::atomic<uint32_t> lead{1024};          // frames the emulation keeps ahead of the sound (grows after an underrun)
+std::atomic<uint32_t> underruns{0};
+std::atomic<uint64_t> played{0};           // frames the callback has played since the boot
+std::atomic<uint64_t> lastUnderrun{0};     // .. when the last underrun was
+constexpr uint32_t LEAD_MIN = 768, LEAD_MAX = 8192, WARMUP = RATE * 3;   // (the first seconds: the JIT compiles)
+float lastL = 0, lastR = 0;                // the callback's last sample (an underrun fades from it)
+std::thread emuThread;
+std::atomic<bool> emuRun{false};
+std::mutex wakeLock;
+std::condition_variable wake;
 
 template <typename T> bool sym(T &f, const char *name) {
     f = reinterpret_cast<T>(dlsym(lib.h, name));
@@ -89,43 +108,98 @@ void apply(const Cmd &c) {
     }
 }
 
-aaudio_data_callback_result_t onAudio(AAudioStream *, void *, void *data, int32_t frames) {
-    float *out = static_cast<float *>(data);
-    std::unique_lock<std::mutex> g(coreLock, std::try_to_lock);
-    if (!g.owns_lock() || !booted) {                 // (a boot in progress: silence)
-        std::memset(out, 0, sizeof(float) * 2 * frames);
-        return AAUDIO_CALLBACK_RESULT_CONTINUE;
-    }
-    {
-        std::unique_lock<std::mutex> q(queueLock, std::try_to_lock);
-        if (q.owns_lock()) { taken.swap(queue); queue.clear(); }
-    }
-    for (const Cmd &c : taken) apply(c);
-    taken.clear();
-    float peak = 0;
-    for (int32_t done = 0; done < frames;) {
-        const uint32_t n = (uint32_t)std::min<int32_t>(frames - done, 1024);
+// the emulation thread: keep the ring `lead` frames ahead of the callback
+void emulate() {
+    setpriority(PRIO_PROCESS, (id_t)gettid(), -19);                   // (Android's urgent audio; refused: as it is)
+    while (emuRun) {
+        const uint32_t fill = ringW.load() - ringR.load();
+        if (fill >= lead.load() || !booted) {
+            std::unique_lock<std::mutex> w(wakeLock);
+            wake.wait_for(w, std::chrono::milliseconds(2));
+            continue;
+        }
+        std::lock_guard<std::mutex> g(coreLock);
+        if (!booted) continue;
+        {
+            std::unique_lock<std::mutex> q(queueLock, std::try_to_lock);
+            if (q.owns_lock()) { taken.swap(queue); queue.clear(); }
+        }
+        for (const Cmd &c : taken) apply(c);
+        taken.clear();
+        const uint32_t n = std::min<uint32_t>(256, RING - fill);
         // at most twice the emulated time these frames stand for (fm1_render raises it to what its pace needs)
         const uint32_t got = lib.render(n, n * (MHZ * 1000000u / RATE) * 2u);
-        if (got < n) late.fetch_add(1);
         const float *l = lib.outL(), *r = lib.outR();
-        for (uint32_t i = 0; i < n; i++) {
-            out[2 * (done + i)] = l[i];
-            out[2 * (done + i) + 1] = r[i];
+        uint32_t w0 = ringW.load();
+        float peak = 0;
+        for (uint32_t i = 0; i < got; i++, w0++) {
+            ring[2 * (w0 % RING)] = l[i];
+            ring[2 * (w0 % RING) + 1] = r[i];
             peak = std::max(peak, std::max(l[i] < 0 ? -l[i] : l[i], r[i] < 0 ? -r[i] : r[i]));
         }
-        done += (int32_t)n;
+        ringW.store(w0);
+        if (got < n) late.fetch_add(1);
+        level = std::max(peak, level.load() * 0.995f);
+        halted = lib.halted() != 0;
+        flashRev = lib.flashRevision();
+        const uint32_t rev = lib.lcdRevision();
+        std::unique_lock<std::mutex> s(screenLock, std::try_to_lock);
+        if (s.owns_lock()) {
+            if (rev != lastLcd) { std::memcpy(screen, lib.lcd(), sizeof screen); lastLcd = rev; }
+            const float *f = lib.leds();
+            for (int i = 0; i < 41; i++) ledLevel[i] = std::min(1.0f, f[i] * 11.0f);
+            serial.fetch_add(1);
+        }
+        if (halted) std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
-    level = std::max(peak, level.load() * 0.9f);
-    halted = lib.halted() != 0;
-    flashRev = lib.flashRevision();
-    const uint32_t rev = lib.lcdRevision();
-    std::unique_lock<std::mutex> s(screenLock, std::try_to_lock);
-    if (s.owns_lock()) {
-        if (rev != lastLcd) { std::memcpy(screen, lib.lcd(), sizeof screen); lastLcd = rev; }
-        const float *f = lib.leds();
-        for (int i = 0; i < 41; i++) ledLevel[i] = std::min(1.0f, f[i] * 11.0f);
-        serial.fetch_add(1);
+}
+
+void startEmu() {
+    if (emuRun) return;
+    emuRun = true;
+    emuThread = std::thread(emulate);
+}
+
+void stopEmu() {
+    if (!emuRun) return;
+    emuRun = false;
+    wake.notify_all();
+    if (emuThread.joinable()) emuThread.join();
+}
+
+aaudio_data_callback_result_t onAudio(AAudioStream *, void *, void *data, int32_t frames) {
+    float *out = static_cast<float *>(data);
+    uint32_t r = ringR.load();
+    const uint32_t have = ringW.load() - r;
+    const uint32_t n = std::min<uint32_t>((uint32_t)frames, have);
+    for (uint32_t i = 0; i < n; i++, r++) {
+        out[2 * i] = ring[2 * (r % RING)];
+        out[2 * i + 1] = ring[2 * (r % RING) + 1];
+    }
+    ringR.store(r);
+    if (n > 0) { lastL = out[2 * n - 2]; lastR = out[2 * n - 1]; }
+    if (n < (uint32_t)frames) {
+        // the emulation fell behind: fade from the last sample (no click), and keep more ahead from now on
+        for (uint32_t i = n; i < (uint32_t)frames; i++) {
+            lastL *= 0.995f; lastR *= 0.995f;
+            out[2 * i] = lastL; out[2 * i + 1] = lastR;
+        }
+        if (booted && played.load() > WARMUP) {          // (a boot's compiling is not the phone being slow)
+            underruns.fetch_add(1);
+            lastUnderrun = played.load();
+            lead.store(std::min<uint32_t>(lead.load() + 512, LEAD_MAX));
+        }
+    } else if (played.load() - lastUnderrun.load() > (uint64_t)RATE * 4 && lead.load() > LEAD_MIN) {
+        // 4 s without one: a little less ahead (less latency), down to the least
+        lead.store(std::max<uint32_t>(lead.load() - 128, LEAD_MIN));
+        lastUnderrun = played.load();
+    }
+    played.fetch_add((uint64_t)frames);
+    wake.notify_one();
+    {   // a line now and then: the sound's peak, the underruns, the lead (logcat fm1emu)
+        static uint32_t calls = 0;
+        if (++calls % 250 == 0)
+            LOG("level %.4f underruns %u lead %u late %u halted %u", level.load(), underruns.load(), lead.load(), late.load(), (unsigned)halted.load());
     }
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
@@ -155,7 +229,7 @@ void openStream() {
     AAudioStreamBuilder_delete(b);
     if (!stream) { LOG("no audio stream"); return; }
     // a few bursts: the emulation's work per callback is uneven (the firmware's DMA halves)
-    AAudioStream_setBufferSizeInFrames(stream, AAudioStream_getFramesPerBurst(stream) * 4);
+    AAudioStream_setBufferSizeInFrames(stream, AAudioStream_getFramesPerBurst(stream) * 2);   // (the ring is the margin)
     AAudioStream_requestStart(stream);
     LOG("audio: %d Hz, burst %d, buffer %d", AAudioStream_getSampleRate(stream), AAudioStream_getFramesPerBurst(stream),
         AAudioStream_getBufferSizeInFrames(stream));
@@ -208,8 +282,14 @@ JNIEXPORT jint JNICALL FN(boot)(JNIEnv *env, jclass, jbyteArray pkg, jbyteArray 
     std::memset(screen, 0, sizeof screen);
     halted = false;
     late = 0;
+    underruns = 0;
+    lead = 1024;
+    played = 0;
+    lastUnderrun = 0;
+    ringR.store(ringW.load());
     booted = true;
     running = true;
+    startEmu();
     if (!stream) openStream();
     return rc;
 }
@@ -217,6 +297,7 @@ JNIEXPORT jint JNICALL FN(boot)(JNIEnv *env, jclass, jbyteArray pkg, jbyteArray 
 JNIEXPORT void JNICALL FN(stop)(JNIEnv *, jclass) {
     running = false;
     closeStream();
+    stopEmu();
     std::lock_guard<std::mutex> g(coreLock);
     booted = false;
 }

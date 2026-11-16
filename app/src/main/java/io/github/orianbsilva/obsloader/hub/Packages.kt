@@ -43,31 +43,36 @@ class PackageStore(root: File) {
         return gone.size
     }
 
-    /** the maker's release asset's address: the asset the list names, else the one in the tag's release that matches */
-    private fun resolve(f: Firmware): String {
-        val api = "https://api.github.com/repos/${f.repo}/releases"
-        if (f.assetId != null) {
-            val j = JSONObject(getText("$api/assets/${f.assetId}"))
-            return j.getString("browser_download_url")
-        }
-        val rel = JSONObject(getText("$api/tags/${f.tag}"))
-        val assets = rel.getJSONArray("assets")
-        val pat = f.assetPattern?.let { Regex(it) }
-        for (i in 0 until assets.length()) {
-            val a = assets.getJSONObject(i)
-            val n = a.getString("name")
-            if (if (pat != null) pat.matches(n) else n.endsWith(".fwsc")) return a.getString("browser_download_url")
-        }
-        throw IllegalStateException("no .fwsc in ${f.repo}'s release ${f.tag}")
-    }
-
-    /** the firmware's package from its maker's release, checked against the list's sha256 */
+    /** the firmware's package from its maker's release, checked against the list's sha256. The release's files come
+     *  from its public page (no GitHub API: its limit for apps without an account is 60 calls an hour); the API only
+     *  when the page has none. Of several .fwsc in a release, the one the list names (its pattern) is tried first, and
+     *  only the one with the list's sha256 is kept. */
     fun download(f: Firmware, progress: (Long, Long) -> Unit = { _, _ -> }): Stored {
         require(f.fromRelease) { "${f.name} installs from its maker's page" }
-        val raw = getBytes(resolve(f), f.size, progress)
-        val sha = sha256(raw)
-        if (sha != f.sha256) throw SecurityException("${f.name}: the release's file is not the one the hub checked (sha256 $sha)")
-        return keep(f.id, f.version, sha, raw, f.lic, f.srcref ?: f.source, f.release)
+        val pat = f.assetPattern?.let { runCatching { Regex(it) }.getOrNull() }
+        var urls = releaseFiles(f.repo, f.tag!!).sortedByDescending { u -> pat?.matches(u.substringAfterLast('/')) == true }
+        if (urls.isEmpty()) urls = listOfNotNull(runCatching { apiAsset(f) }.getOrNull())
+        if (urls.isEmpty()) throw IllegalStateException("no .fwsc in ${f.repo}'s release ${f.tag}")
+        var last = ""
+        for (u in urls) {
+            val raw = getBytes(u, f.size, progress)
+            val sha = sha256(raw)
+            if (sha == f.sha256) return keep(f.id, f.version, sha, raw, f.lic, f.srcref ?: f.source, f.release)
+            last = sha
+        }
+        throw SecurityException("${f.name}: the release's file is not the one the hub checked (sha256 $last)")
+    }
+
+    /** the asset the list names, through the API (a last resort) */
+    private fun apiAsset(f: Firmware): String {
+        val api = "https://api.github.com/repos/${f.repo}/releases"
+        if (f.assetId != null) return JSONObject(getText("$api/assets/${f.assetId}")).getString("browser_download_url")
+        val assets = JSONObject(getText("$api/tags/${f.tag}")).getJSONArray("assets")
+        for (i in 0 until assets.length()) {
+            val a = assets.getJSONObject(i)
+            if (a.getString("name").endsWith(".fwsc")) return a.getString("browser_download_url")
+        }
+        throw IllegalStateException("no .fwsc")
     }
 
     /** M-VAVE's V15, from M-VAVE's own repository, checked against the list's sha256 */
@@ -110,6 +115,18 @@ class PackageStore(root: File) {
         }
 
         fun getText(url: String) = conn(url).inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+
+        /** a release's .fwsc files, from its public page (github.com/OWNER/REPO/releases/expanded_assets/TAG) */
+        fun releaseFiles(repo: String, tag: String): List<String> = runCatching {
+            val html = getText("https://github.com/$repo/releases/expanded_assets/" + java.net.URLEncoder.encode(tag, "UTF-8").replace("+", "%20"))
+            Regex("href=\"(/[^\"]+/releases/download/[^\"]+\\.fwsc)\"").findAll(html).map { "https://github.com" + it.groupValues[1] }.distinct().toList()
+        }.getOrDefault(emptyList())
+
+        /** a repository's release tags, newest first, from its public feed (github.com/OWNER/REPO/releases.atom) */
+        fun releaseTags(repo: String): List<String> = runCatching {
+            val xml = getText("https://github.com/$repo/releases.atom")
+            Regex("/releases/tag/([^\"<]+)\"").findAll(xml).map { java.net.URLDecoder.decode(it.groupValues[1], "UTF-8") }.distinct().toList()
+        }.getOrDefault(emptyList())
 
         fun getBytes(url: String, expect: Long = 0, progress: (Long, Long) -> Unit = { _, _ -> }): ByteArray {
             val c = conn(url)
