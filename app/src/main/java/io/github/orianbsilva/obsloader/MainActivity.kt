@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. Firmwares for the M-VAVE FM-1 from The Firmware Hub's list, installed over USB.
+// FM1 Emulator: 2026 Orian Beltrame. Firmwares for the M-VAVE FM-1 from The Firmware Hub's list, installed over USB.
 package io.github.orianbsilva.obsloader
 
 import android.os.Bundle
@@ -49,7 +49,6 @@ class MainActivity : ComponentActivity() {
             ObsTheme {
                 val m = model
                 var tab by rememberSaveable { mutableStateOf(0) }   // 0 Play, 1 Firmwares, 2 FM-1, 3 About
-                var running by rememberSaveable { mutableStateOf<String?>(null) }   // a core on the phone's screen
                 var detail by rememberSaveable { mutableStateOf<String?>(null) }
                 var web by rememberSaveable { mutableStateOf<String?>(null) }
                 val snack = remember { SnackbarHostState() }
@@ -60,14 +59,14 @@ class MainActivity : ComponentActivity() {
                     else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 }
                 BackHandler(web != null || detail != null) { if (web != null) web = null else detail = null }
-                val core = running?.let { id -> io.github.orianbsilva.obsloader.emu.Cores.ALL.firstOrNull { it.id == id } }
-                LaunchedEffect(core) {
-                    if (core != null) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                val pkg = m.playing
+                LaunchedEffect(pkg) {
+                    if (pkg != null) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     else if (!m.installing) window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 }
-                if (core != null) {
-                    BackHandler { m.emulator.stop(); running = null }
-                    io.github.orianbsilva.obsloader.ui.EmuScreen(m.emulator, core) { running = null }
+                if (pkg != null) {
+                    BackHandler { m.emulator.stop(); m.playing = null }
+                    io.github.orianbsilva.obsloader.ui.EmuScreen(m.emulator, pkg, m.chip == Chip.NEWER) { m.playing = null }
                     return@ObsTheme
                 }
                 val w = web
@@ -94,10 +93,10 @@ class MainActivity : ComponentActivity() {
                     val mod = Modifier.padding(pad)
                     val d = detail?.let { id -> m.catalog?.firmwares?.firstOrNull { it.id == id } }
                     when {
-                        tab == 1 && d != null -> DetailScreen(m, d, mod, onBack = { detail = null }, onWeb = { web = it }, onInstall = { m.prepare(d); tab = 2 })
+                        tab == 1 && d != null -> DetailScreen(m, d, mod, onBack = { detail = null }, onWeb = { web = it }, onInstall = { m.prepare(d); tab = 2 }, onPlay = { m.play(d) })
                         tab == 1 -> FirmwaresScreen(m, mod) { detail = it.id }
                         tab == 2 -> DeviceScreen(m, mod)
-                        tab == 0 -> SimScreen(m, mod, play = { running = it }) { web = it }
+                        tab == 0 -> SimScreen(m, mod) { web = it }
                         else -> AboutScreen(m, mod) { web = it }
                     }
                 }

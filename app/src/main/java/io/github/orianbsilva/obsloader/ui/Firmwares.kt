@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. The hub's list, and one firmware's card.
+// FM1 Emulator: 2026 Orian Beltrame. The hub's list, and one firmware's card.
 package io.github.orianbsilva.obsloader.ui
 
 import android.graphics.BitmapFactory
@@ -166,7 +166,7 @@ private fun Fact(label: String, value: String, link: String? = null) {
 }
 
 @Composable
-fun DetailScreen(m: AppModel, f: Firmware, mod: Modifier, onBack: () -> Unit, onWeb: (String) -> Unit, onInstall: () -> Unit) {
+fun DetailScreen(m: AppModel, f: Firmware, mod: Modifier, onBack: () -> Unit, onWeb: (String) -> Unit, onInstall: () -> Unit, onPlay: () -> Unit) {
     val uri = LocalUriHandler.current
     Column(mod.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
         IconButton(onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) }
@@ -184,6 +184,10 @@ fun DetailScreen(m: AppModel, f: Firmware, mod: Modifier, onBack: () -> Unit, on
         Text(stringResource(if (f.textByMaker) R.string.text_by_maker else R.string.text_by_hub), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         f.notice?.let { Spacer(Modifier.height(8.dp)); Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary) }
         Spacer(Modifier.height(12.dp))
+        if (f.fromRelease) Button(onPlay, Modifier.fillMaxWidth(), enabled = f.id !in m.downloading) {
+            Text(stringResource(if (m.onPhone[f.id] == f.sha256) R.string.play_in_emu else R.string.play_in_emu_get))
+        }
+        Spacer(Modifier.height(8.dp))
         val stored = m.onPhone[f.id]
         when {
             f.linkOnly || f.externalInstall || !f.fromRelease -> {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. Whole MIDI messages out of the byte stream Android's MIDI API gives in pieces:
+// FM1 Emulator: 2026 Orian Beltrame. Whole MIDI messages out of the byte stream Android's MIDI API gives in pieces:
 // channel messages (running status too), system common, real time (at once, even inside a SysEx) and SysEx.
 package io.github.orianbsilva.obsloader.midi
 

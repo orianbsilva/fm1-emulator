@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. The app's state: the hub's list, the packages on the phone, the FM-1 on USB and an
+// FM1 Emulator: 2026 Orian Beltrame. The app's state: the hub's list, the packages on the phone, the FM-1 on USB and an
 // install in progress. One ViewModel for the whole app (a few screens over the same data).
 package io.github.orianbsilva.obsloader
 
@@ -47,6 +47,9 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     val catalogStore = CatalogStore(files)
     val packages = PackageStore(files)
     val pictures = PictureStore(app.cacheDir)
+    val repos = io.github.orianbsilva.obsloader.hub.RepoStore(prefs, packages)
+    /** the person's own repositories (off the hub) on the phone */
+    val repoList = mutableStateListOf<String>()
     val usb = Fm1Usb(app)
     val emulator = io.github.orianbsilva.obsloader.emu.Emulator(app)
     private val updater = Updater(usb)
@@ -101,7 +104,73 @@ class AppModel(app: Application) : AndroidViewModel(app) {
 
     fun stopThru() { thru.stop(); thruFrom = null }
 
-    override fun onCleared() { thru.stop() }
+    override fun onCleared() { thru.stop(); emulator.stop() }
+
+    // ── the emulator: every package on the phone plays, offline ─────────────────────────────────────────────
+
+    var playing by mutableStateOf<io.github.orianbsilva.obsloader.emu.EmuPackage?>(null)
+    private val opened = java.io.File(app.filesDir, "emu/files").apply { mkdirs() }
+
+    /** ObsSynth FM-1, in the app (it plays with no download) */
+    val builtIn = io.github.orianbsilva.obsloader.emu.EmuPackage("builtin:obssynth-fm1", "ObsSynth FM-1", "0.2.0", "Orian Beltrame") {
+        app.assets.open("fw/obssynth-fm1-0.2.0.fwsc").use { it.readBytes() }
+    }
+
+    fun emuOf(f: Firmware) = io.github.orianbsilva.obsloader.emu.EmuPackage("hub:" + f.id, f.name, f.version, f.author) {
+        packages.stored(f.id)!!.file.readBytes()
+    }
+
+    /** what plays without the internet: the built-in one, the list's packages on the phone, the V15, opened files */
+    fun playable(): List<io.github.orianbsilva.obsloader.emu.EmuPackage> {
+        val list = mutableListOf<io.github.orianbsilva.obsloader.emu.EmuPackage>()
+        catalog?.firmwares?.filter { onPhone[it.id] == it.sha256 }?.forEach { list += emuOf(it) }
+        for (repo in repoList) packages.stored(io.github.orianbsilva.obsloader.hub.RepoStore.idOf(repo))?.let { st ->
+            list += io.github.orianbsilva.obsloader.emu.EmuPackage("repo:$repo", repo.substringAfter('/'), st.version, repo.substringBefore('/')) { st.file.readBytes() }
+        }
+        packages.stored(PackageStore.STOCK_ID)?.let { st ->
+            list += io.github.orianbsilva.obsloader.emu.EmuPackage("stock:v15", "M-VAVE FM-1", "V15", "M-VAVE") { st.file.readBytes() }
+        }
+        opened.listFiles { x -> x.name.endsWith(".fwsc") }.orEmpty().sortedBy { it.name }.forEach { file ->
+            list += io.github.orianbsilva.obsloader.emu.EmuPackage("file:" + file.name, file.name.substringAfter('-').removeSuffix(".fwsc"), "", "") { file.readBytes() }
+        }
+        list += builtIn
+        return list
+    }
+
+    /** a firmware of the list in the emulator: from the phone, or downloaded first (then it stays) */
+    fun play(f: Firmware) {
+        if (onPhone[f.id] == f.sha256) { playing = emuOf(f); return }
+        if (!f.fromRelease) { message = s(R.string.err_download, f.name, s(R.string.maker_page_only)); return }
+        downloading[f.id] = 0f
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { packages.download(f) { got, total -> if (total > 0) downloading[f.id] = got.toFloat() / total } }
+                refreshStored()
+                playing = emuOf(f)
+            } catch (e: RateLimited) {
+                message = s(R.string.err_rate, time(e.resetAt))
+            } catch (e: Exception) {
+                message = s(R.string.err_download, f.name, e.message ?: e.toString())
+            } finally {
+                downloading.remove(f.id)
+            }
+        }
+    }
+
+    /** a .fwsc from the phone: kept beside the others (it plays offline next time too) */
+    fun playFile(uri: Uri) {
+        val raw = runCatching { getApplication<Application>().contentResolver.openInputStream(uri)!!.use { it.readBytes() } }.getOrNull()
+        if (raw == null || Wire.productOf(raw) == null) { message = s(R.string.err_notpkg); return }
+        val name = (uri.lastPathSegment?.substringAfterLast('/') ?: "package").replace(Regex("[^A-Za-z0-9._-]"), "_")
+        val file = java.io.File(opened, Wire.sha256(raw).take(8) + "-" + (if (name.endsWith(".fwsc")) name else "$name.fwsc"))
+        file.writeBytes(raw)
+        playing = io.github.orianbsilva.obsloader.emu.EmuPackage("file:" + file.name, file.name.substringAfter('-').removeSuffix(".fwsc"), "", "") { file.readBytes() }
+    }
+
+    fun forgetFile(p: io.github.orianbsilva.obsloader.emu.EmuPackage) {
+        if (p.id.startsWith("file:")) java.io.File(opened, p.id.removePrefix("file:")).delete()
+        refreshStored()
+    }
 
     /** when each firmware was last installed from the phone (for the library's order) */
     fun installedAt(id: String) = prefs.getLong("at.$id", 0L)
@@ -112,7 +181,52 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     init {
         catalog = catalogStore.cached()
         refreshStored()
+        repoList.addAll(repos.list())
         loadCatalog()
+        checkRepos(false)
+    }
+
+    // ── repositories off the hub ───────────────────────────────────────────────────────────────────────
+
+    fun addRepo(text: String) {
+        val repo = io.github.orianbsilva.obsloader.hub.RepoStore.parse(text) ?: run { message = s(R.string.repo_bad); return }
+        val id = io.github.orianbsilva.obsloader.hub.RepoStore.idOf(repo)
+        downloading[id] = 0f
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { repos.fetch(repo) }
+                if (repo !in repoList) repoList += repo
+                refreshStored()
+                message = s(R.string.repo_added, repo)
+            } catch (e: RateLimited) {
+                message = s(R.string.err_rate, time(e.resetAt))
+            } catch (e: Exception) {
+                message = s(R.string.err_download, repo, e.message ?: e.toString())
+            } finally {
+                downloading.remove(id)
+            }
+        }
+    }
+
+    fun removeRepo(repo: String) { repos.remove(repo); repoList.remove(repo); refreshStored() }
+
+    /** new releases of the person's repositories: at most once a day by itself, or when asked */
+    fun checkRepos(now: Boolean) {
+        val last = prefs.getLong("repos.checked", 0)
+        if (!now && System.currentTimeMillis() - last < CatalogStore.DAY) return
+        prefs.edit().putLong("repos.checked", System.currentTimeMillis()).apply()
+        viewModelScope.launch {
+            var newer = 0
+            for (repo in repoList.toList()) runCatching {
+                val r = withContext(Dispatchers.IO) { repos.latest(repo) }
+                if (packages.stored(io.github.orianbsilva.obsloader.hub.RepoStore.idOf(repo))?.version != r.tag) {
+                    withContext(Dispatchers.IO) { repos.fetch(repo) }
+                    newer++
+                }
+            }
+            refreshStored()
+            if (now) message = s(R.string.repo_checked, newer)
+        }
     }
 
     private fun refreshStored() {
@@ -243,6 +357,11 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     fun prepare(f: Firmware) {
         val st = packages.stored(f.id) ?: return
         prepare(f.name + " " + f.version, st.file.readBytes(), f)
+    }
+
+    fun prepareRepo(repo: String) {
+        val st = packages.stored(io.github.orianbsilva.obsloader.hub.RepoStore.idOf(repo)) ?: return
+        prepare(repo + " " + st.version, st.file.readBytes(), null)
     }
 
     fun prepareStock() {

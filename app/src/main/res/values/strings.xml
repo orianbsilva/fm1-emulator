@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ObsLoader</string>
+    <string name="app_name">FM1 Emulator</string>
     <string name="tab_firmwares">Firmwares</string>
     <string name="tab_device">FM-1</string>
     <string name="tab_sim">Play</string>
@@ -103,13 +103,13 @@
     <string name="sim_others">%1$d other firmwares play in the browser</string>
     <string name="sim_note">The others are their makers\' own pages: they need the internet.</string>
 
-    <string name="about_what">Firmwares for the M-VAVE FM-1: the hub\'s list, each package from its maker\'s release, installed over USB-MIDI with an OTG cable; the simulators to try them first.</string>
+    <string name="about_what">An emulator of the M-VAVE FM-1 for Android: the firmwares themselves, their update packages unchanged, on an emulated FM-1, played with your fingers, a MIDI keyboard or a controller; offline once downloaded. And The Firmware Hub\'s list, the makers\' browser versions, and installing on a real FM-1 over USB.</string>
     <string name="about_list_title">The list</string>
     <string name="about_list">Firmware list: The Firmware Hub – thefirmwarehub.com, under %1$s. Read at most once a day; shown unchanged, filtered and sorted on the phone. Each card\'s text and picture belong to its maker (from their fmhub.json and repository).</string>
     <string name="about_fw_title">The firmwares</string>
     <string name="about_fw">Each belongs to its maker, under its own licence (mostly GPL-3.0 or MPL-2.0): the card names it and links the source at the release\'s tag. Packages come from the makers\' GitHub releases, never from the hub, and are installed only if their sha256 is the one the hub checked.</string>
     <string name="about_app_title">This app</string>
-    <string name="about_app">ObsLoader is free software under the GPL-3.0. Its installer follows Felucca\'s (Leo Kuroshita, Hügelton Instruments), as ObsSynth FM-1 carries it. Not made by or affiliated with M-VAVE or The Firmware Hub.</string>
+    <string name="about_app">FM1 Emulator is free software under the GPL-3.0: the panel, the sound and MIDI around the emulator, the list, the downloads and the installer. Not made by or affiliated with M-VAVE, The Firmware Hub or fm1-emu\'s author.</string>
     <string name="about_trademarks">M-VAVE and FM-1 are trademarks of their owners.</string>
     <string name="disclaimer">Unofficial firmware, free and without warranty: you install it at your own risk. Back up your projects first.</string>
     <string name="lib_title">On the phone</string>
@@ -138,4 +138,31 @@
     <string name="emu_learning">Move a knob on the controller for %1$s (touch here to stop)</string>
     <string name="emu_erase_help">The firmware\'s memory on the phone (your presets, its settings):</string>
     <string name="emu_erase">Erase it (factory state)</string>
+    <string name="emu_title">The FM-1 emulator</string>
+    <string name="emu_help">The firmware itself, its update package (.fwsc) unchanged, on an emulated FM-1: its two cores, screen, keys, knobs and sound (fm1-emu by Joakim Eriksson). Offline: what is on the phone plays without the internet. Each firmware keeps its own presets and settings.</string>
+    <string name="emu_play">Play</string>
+    <string name="emu_builtin">in the app</string>
+    <string name="emu_file">a file you opened</string>
+    <string name="emu_open_file">Open a .fwsc file…</string>
+    <string name="emu_more">More: in Firmwares, a firmware\'s page, Play in the emulator (it downloads once, then plays offline).</string>
+    <string name="emu_halted">The emulated FM-1 stopped (the firmware did something the emulator does not have yet).</string>
+    <string name="play_in_emu">Play in the emulator</string>
+    <string name="play_in_emu_get">Download and play in the emulator</string>
+    <string name="emu_keys">Keys on screen</string>
+    <string name="credits_title">Credits</string>
+    <string name="credit_fm1emu">The emulation is fm1-emu, by Joakim Eriksson (MIT): the FM-1\'s cores, screen, keys, knobs and sound.</string>
+    <string name="credit_fm1emu_what">The emulator itself: the FM-1\'s two JieLi cores (their instruction set, compiled to native code), the chip around them, the screen, the keys and knobs, the flash, MIDI IN and the audio. This app builds its library (fm1-web, v0.5.1) for Android unchanged.</string>
+    <string name="credit_licence">The licence (%1$s)</string>
+    <string name="credit_makers">Each firmware\'s maker, named on its card</string>
+    <string name="credit_felucca_what">The update protocol the installer speaks (fm1_install.py), and the base most FM-1 firmwares are built on. GPL-3.0.</string>
+    <string name="credit_obssynth_what">In the app (it plays with no download). On Felucca and on Hortator by DEADACTIVE. GPL-3.0.</string>
+    <string name="repo_add">Add a GitHub repository…</string>
+    <string name="repo_add_go">Add</string>
+    <string name="repo_help">A firmware not on the hub (yet): its repository on GitHub. Its newest release with a .fwsc is downloaded, then plays offline; new releases come by themselves.</string>
+    <string name="repo_warn">Nobody checked it: no identity, loader or sha256 check of the hub. It plays in the emulator as it is; on a real FM-1 only with an update loader.</string>
+    <string name="repo_bad">That is not a GitHub repository (owner/repo).</string>
+    <string name="repo_added">%1$s: added</string>
+    <string name="repo_check">Check for new versions</string>
+    <string name="repo_checked">%1$d new</string>
+    <string name="repo_off_hub">off the hub · github.com/%1$s</string>
 </resources>

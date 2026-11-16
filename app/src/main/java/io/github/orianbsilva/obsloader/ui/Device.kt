@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. The FM-1 on USB: what it runs, its flash chip, installing, the way back.
+// FM1 Emulator: 2026 Orian Beltrame. The FM-1 on USB: what it runs, its flash chip, installing, the way back.
 package io.github.orianbsilva.obsloader.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -98,6 +98,16 @@ fun DeviceScreen(m: AppModel, mod: Modifier) {
                 val blocked = f.chip == "old" && m.chip == Chip.NEWER
                 if (f.id in running) TextButton({ m.prepare(f) }, enabled = !busy && !blocked) { Text(stringResource(R.string.lib_reinstall)) }
                 else Button({ m.prepare(f) }, enabled = !busy && !blocked) { Text(stringResource(R.string.lib_switch)) }
+            }
+            for (repo in m.repoList) {
+                val st = m.packages.stored(io.github.orianbsilva.obsloader.hub.RepoStore.idOf(repo)) ?: continue
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(repo.substringAfter('/') + " " + st.version, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.repo_off_hub, repo), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                    }
+                    Button({ m.prepareRepo(repo) }, enabled = !busy) { Text(stringResource(R.string.lib_switch)) }
+                }
             }
             HorizontalDivider(Modifier.padding(vertical = 6.dp))
             OutlinedButton({ pick.launch(arrayOf("*/*")) }, enabled = !busy) { Text(stringResource(R.string.inst_file)) }

@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "ObsLoader"
+rootProject.name = "FM1-Emulator"
 include(":app")

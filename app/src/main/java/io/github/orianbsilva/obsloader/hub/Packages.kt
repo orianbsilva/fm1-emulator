@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. The packages on the phone: each from its maker's GitHub release (never from the
+// FM1 Emulator: 2026 Orian Beltrame. The packages on the phone: each from its maker's GitHub release (never from the
 // hub), kept only if its sha256 is the list's; with it, what the license asks to travel along (the license's name,
 // the source at its tag, the release). A firmware that leaves the list leaves the phone too.
 package io.github.orianbsilva.obsloader.hub
@@ -38,7 +38,7 @@ class PackageStore(root: File) {
     /** what dropped out of the list goes; an old version of what stays is kept until its new one comes */
     fun prune(cat: Catalog): Int {
         val ids = cat.firmwares.filter { it.fromRelease }.map { it.id }.toSet()
-        val gone = all().filter { it.id !in ids && it.id != STOCK_ID }
+        val gone = all().filter { it.id !in ids && it.id != STOCK_ID && !it.id.startsWith("gh_") }   // (a person's own repositories stay)
         gone.forEach { delete(it.id) }
         return gone.size
     }
@@ -77,6 +77,10 @@ class PackageStore(root: File) {
         if (sha != s.sha256) throw SecurityException("V15: not M-VAVE's file (sha256 $sha)")
         return keep(STOCK_ID, "V15", sha, raw, "Apache-2.0 (M-VAVE)", s.source, s.source)
     }
+
+    /** a package from outside the list (RepoStore): kept with its own sha256 */
+    fun keepExternal(id: String, version: String, raw: ByteArray, lic: String, source: String?, release: String?): Stored =
+        keep(id, version, sha256(raw), raw, lic, source, release)
 
     private fun keep(id: String, version: String, sha: String, raw: ByteArray, lic: String, source: String?, release: String?): Stored {
         val tmp = File(dir, "$id.part")

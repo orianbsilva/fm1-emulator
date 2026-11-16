@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. Web MIDI for the pages the app opens (the simulators, the makers' browser versions and
+// FM1 Emulator: 2026 Orian Beltrame. Web MIDI for the pages the app opens (the simulators, the makers' browser versions and
 // editors): Android's WebView has no navigator.requestMIDIAccess, so a script given at document start (midi_bridge.js)
 // makes one, and this answers it over a WebMessageListener: the phone's MIDI devices (a USB keyboard through a hub, the
 // FM-1, a Bluetooth one Android already knows) as inputs and outputs. Only the page's own origin gets it.

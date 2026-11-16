@@ -13,3 +13,4 @@ CLAUDE.md
 .mcp.json
 .cxx/
 .externalNativeBuild/
+app/src/main/jniLibs/

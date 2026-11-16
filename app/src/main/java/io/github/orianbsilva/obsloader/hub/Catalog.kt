@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. The Firmware Hub's list (https://thefirmwarehub.com/catalog.json, CC BY 4.0, by
+// FM1 Emulator: 2026 Orian Beltrame. The Firmware Hub's list (https://thefirmwarehub.com/catalog.json, CC BY 4.0, by
 // its rules: https://thefirmwarehub.com/kb/#catalog): read at most once a day with a User-Agent that says who we are,
 // kept on the phone; the makers' texts and pictures are theirs, each card names its maker and links its repository.
 package io.github.orianbsilva.obsloader.hub
@@ -13,7 +13,7 @@ import java.net.URL
 
 const val HUB = "https://thefirmwarehub.com"
 const val CATALOG_URL = "$HUB/catalog.json"
-val USER_AGENT = "ObsLoader/${BuildConfig.VERSION_NAME} (Android; +https://github.com/orianbsilva/fm1-emulator)"
+val USER_AGENT = "FM1-Emulator/${BuildConfig.VERSION_NAME} (Android; +https://github.com/orianbsilva/fm1-emulator)"
 
 /** one firmware of the list (the fields the app uses) */
 data class Firmware(

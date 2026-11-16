@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// ObsLoader: 2026 Orian Beltrame. A firmware running on the phone: its core (Native), its flash kept between runs, and
-// the MIDI that plays it: every MIDI device the phone has (a USB keyboard, a Bluetooth one Android knows, the FM-1's
-// own keys) goes in, as an FM-1 over USB takes it; a controller's CC can turn the panel's knobs instead (MIDI learn).
+// FM1 Emulator: 2026 Orian Beltrame. A firmware package running on the emulated FM-1 (Native: fm1-emu), its flash kept
+// between runs (each exact package its own), and the MIDI that plays it: every MIDI device the phone has (a USB
+// keyboard, a Bluetooth one Android knows, an FM-1's own keys) goes into the MIDI IN jack, as a cable would; a
+// controller's CC can turn the panel's knobs instead (MIDI learn).
 package io.github.orianbsilva.obsloader.emu
 
 import android.content.Context
@@ -18,35 +19,29 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.orianbsilva.obsloader.fm1.MidiLink
+import io.github.orianbsilva.obsloader.fm1.Wire
 import io.github.orianbsilva.obsloader.midi.MidiParser
 import java.io.File
 import java.util.concurrent.Executors
 
-/** a firmware the app runs: its library, and where it comes from (GPL: its source) */
-data class CoreInfo(val id: String, val name: String, val lib: String, val author: String, val version: String,
-                    val source: String, val credits: String)
+/** a package the emulator runs: what it is called and its bytes' place */
+data class EmuPackage(val id: String, val name: String, val version: String, val author: String, val load: () -> ByteArray)
 
-object Cores {
-    val ALL = listOf(
-        CoreInfo("obssynth-fm1", "ObsSynth FM-1", "libcore_obssynth_fm1.so", "Orian Beltrame", "0.2.0",
-            "https://github.com/orianbsilva/obssynth-fm1/tree/v0.2.0",
-            "On Felucca (Leo Kuroshita, Hügelton Instruments) and Hortator (DEADACTIVE). GPL-3.0."),
-    )
-}
-
-/** what a CC can turn: the panel's encoders (sim_enc roles) and MASTER */
+/** what a CC can turn: the panel's encoders (fm1-emu's encoder ids) and MASTER */
 enum class Target(val label: String, val role: Int) {
-    SELECT("SELECT", 0), ALGORITHM("ALGORITHM", 1), PRESETS("PRESETS", 2),
-    K1("KNOB1", 3), K2("KNOB2", 4), K3("KNOB3", 5), K4("KNOB4", 6), MASTER("MASTER", -1)
+    SELECT("SELECT", 0), ALGORITHM("ALGORITHM", 1), PRESETS("PRESETS", 6),
+    K1("KNOB1", 2), K2("KNOB2", 3), K3("KNOB3", 4), K4("KNOB4", 5), MASTER("MASTER", -1)
 }
 
 class Emulator(private val ctx: Context) {
     private val dir = File(ctx.filesDir, "emu").apply { mkdirs() }
     private val prefs = ctx.getSharedPreferences("emu", 0)
     private val io = Executors.newSingleThreadExecutor()
-    var core by mutableStateOf<CoreInfo?>(null); private set
+    var running by mutableStateOf<EmuPackage?>(null); private set
     var failed by mutableStateOf<String?>(null); private set
-    private var loaded: String? = null
+    private var saveKey: String? = null
+    private var savedRev = 0
+    private var revAt = 0L
 
     // MIDI
     private val mm = ctx.getSystemService(MidiManager::class.java)
@@ -56,69 +51,87 @@ class Emulator(private val ctx: Context) {
     var learning by mutableStateOf<Target?>(null)
     val ccMap = mutableStateMapOf<Int, Target>()
     private val lastCc = IntArray(128) { -1 }
-    var lastMidi by mutableStateOf("")
-        private set
     var master by mutableStateOf(prefs.getInt("master", 800)); private set
+    /** the on-screen keys (off: a MIDI keyboard plays, the panel takes the room) */
+    var keysShown: Boolean
+        get() = prefs.getBoolean("keys", true)
+        set(v) { prefs.edit().putBoolean("keys", v).apply() }
     private var callback: MidiManager.DeviceCallback? = null
 
-    private fun flashFile(c: CoreInfo) = File(dir, "${c.id}.flash")
+    /** each exact package (its sha256) keeps its own flash: a firmware's saves are only its own version's */
+    private fun saveFile(key: String) = File(dir, "$key.sectors")
 
-    fun start(c: CoreInfo): Boolean {
-        if (core == c) return true
-        if (core != null) stop()
-        if (loaded != null && loaded != c.lib) { failed = "one core per run: restart the app"; return false }
-        if (!Native.load(c.lib)) { failed = "${c.name}: its core did not load"; return false }
-        loaded = c.lib
-        val f = flashFile(c)
-        val flash = if (f.length() == FLASH) runCatching { f.readBytes() }.getOrNull() else null
-        Native.start(flash)
+    /** boot it (its saved flash too), with the FM-1's flash part (newer: the UC25HQ80) */
+    fun start(p: EmuPackage, newerChip: Boolean): Boolean {
+        if (running?.id == p.id) return true
+        stop()
+        if (!Native.load()) { failed = "the emulator's library is missing"; return false }
+        val bytes = runCatching { p.load() }.getOrElse { failed = "${p.name}: ${it.message}"; return false }
+        val key = Wire.sha256(bytes).take(16) + if (newerChip) "-uc25" else ""
+        val saved = saveFile(key).takeIf { it.exists() }?.readBytes()
+        when (Native.boot(bytes, saved, if (newerChip) 1 else 0)) {
+            0 -> Unit
+            2 -> { saveFile(key).delete(); failed = "${p.name}: its saved memory did not fit and was dropped" }
+            3 -> { Native.stop(); failed = "${p.name} is for the SMK-37"; return false }
+            else -> { failed = "${p.name}: not an FM-1 package"; return false }
+        }
         Native.master(master)
-        core = c
-        failed = null
-        loadMap(c)
+        saveKey = key
+        savedRev = Native.flashRevision(); revAt = 0
+        running = p
+        if (failed?.startsWith(p.name) != true) failed = null
+        loadMap()
         startMidi()
         return true
     }
 
     fun stop() {
-        val c = core ?: return
-        saveFlash(c)
+        if (running == null) return
+        saveFlash(force = true)
         Native.stop()
         stopMidi()
-        core = null
+        running = null
     }
 
-    fun pause() { core?.let { saveFlash(it) }; Native.pause() }
-    fun resume() { if (core != null) Native.resume() }
+    fun pause() { saveFlash(force = true); Native.pause() }
+    fun resume() { if (running != null) Native.resume() }
 
-    private val buf = ByteArray(FLASH.toInt())
-    /** the flash the firmware wrote (its presets, its settings), kept for the next run */
-    fun saveFlash(c: CoreInfo? = core) {
-        if (c == null || !Native.flashIfDirty(buf)) return
-        val copy = buf.copyOf()
+    /** the flash the firmware wrote (its presets, its settings), kept for its next run: once it has been quiet a
+     *  moment (a save in progress is not cut in half) */
+    fun saveFlash(force: Boolean = false) {
+        val key = saveKey ?: return
+        val rev = Native.flashRevision()
+        if (rev == savedRev) return
+        val now = System.currentTimeMillis()
+        if (!force) {
+            if (revAt == 0L || rev != lastSeen) { lastSeen = rev; revAt = now; return }
+            if (now - revAt < 400) return
+        }
+        val sectors = Native.sectors() ?: return
+        savedRev = rev; revAt = 0
         io.execute {
-            val f = flashFile(c)
-            val tmp = File(dir, "${c.id}.flash.part")
-            tmp.writeBytes(copy)
-            tmp.renameTo(f)
+            val tmp = File(dir, "$key.part")
+            tmp.writeBytes(sectors)
+            tmp.renameTo(saveFile(key))
         }
     }
+    private var lastSeen = 0
 
-    /** the flash erased: the factory state (the person's presets and settings gone) */
-    fun erase(c: CoreInfo) {
-        val was = core == c
-        if (was) stop()
-        flashFile(c).delete()
-        if (was) start(c)
+    /** this package's memory erased: the factory state */
+    fun erase(p: EmuPackage, newerChip: Boolean) {
+        val key = saveKey
+        stop()
+        if (key != null) saveFile(key).delete()
+        start(p, newerChip)
     }
 
     fun turnMaster(v: Int) { master = v.coerceIn(0, 1023); Native.master(master); prefs.edit().putInt("master", master).apply() }
 
     // ── MIDI in ───────────────────────────────────────────────────────────────────────────────────────
 
-    private fun loadMap(c: CoreInfo) {
+    private fun loadMap() {
         ccMap.clear()
-        prefs.getString("cc.${c.id}", null)?.split(',')?.forEach { e ->
+        prefs.getString("cc", null)?.split(',')?.forEach { e ->
             val (cc, t) = e.split(':').takeIf { it.size == 2 } ?: return@forEach
             val n = cc.toIntOrNull() ?: return@forEach
             Target.entries.firstOrNull { it.name == t }?.let { ccMap[n] = it }
@@ -126,8 +139,7 @@ class Emulator(private val ctx: Context) {
     }
 
     private fun saveMap() {
-        val c = core ?: return
-        prefs.edit().putString("cc.${c.id}", ccMap.entries.joinToString(",") { "${it.key}:${it.value.name}" }).apply()
+        prefs.edit().putString("cc", ccMap.entries.joinToString(",") { "${it.key}:${it.value.name}" }).apply()
     }
 
     fun unmap(cc: Int) { ccMap.remove(cc); saveMap() }
@@ -159,7 +171,7 @@ class Emulator(private val ctx: Context) {
     private fun openDevice(info: MidiDeviceInfo) {
         if (info.outputPortCount == 0 || info.id in open) return
         mm?.openDevice(info, { d ->
-            if (d == null || core == null) { runCatching { d?.close() }; return@openDevice }
+            if (d == null || running == null) { runCatching { d?.close() }; return@openDevice }
             val ports = info.ports.filter { it.type == MidiDeviceInfo.PortInfo.TYPE_OUTPUT }.mapNotNull { p ->
                 val port = d.openOutputPort(p.portNumber) ?: return@mapNotNull null
                 val parser = MidiParser { msg -> onMidi(msg) }
@@ -183,7 +195,7 @@ class Emulator(private val ctx: Context) {
     /** a whole message from a MIDI input (any thread) */
     private fun onMidi(m: ByteArray) {
         val st = m[0].toInt() and 0xFF
-        if (st >= 0xF0 || m.size < 2) return                     // SysEx, clock: not the panel's (yet)
+        if (st >= 0xF0 || m.size < 2) { Native.midi(m); return }   // SysEx, clock: the firmware's, as from the jack
         val d1 = m[1].toInt() and 0x7F
         val d2 = if (m.size > 2) m[2].toInt() and 0x7F else 0
         if ((st and 0xF0) == 0xB0) {
@@ -193,8 +205,7 @@ class Emulator(private val ctx: Context) {
             }
             ccMap[d1]?.let { t -> turn(t, d1, d2); return }
         }
-        Native.midi(st, d1, d2)
-        if ((st and 0xF0) == 0x90 && d2 > 0) main.post { lastMidi = "note $d1" }
+        Native.midi(m)
     }
 
     /** a mapped CC turns its knob: MASTER takes the value; an encoder the change since the last value (at an end,
@@ -213,5 +224,4 @@ class Emulator(private val ctx: Context) {
         if (steps != 0) Native.enc(t.role, steps.coerceIn(-16, 16))
     }
 
-    companion object { const val FLASH = 0x100000L }
 }

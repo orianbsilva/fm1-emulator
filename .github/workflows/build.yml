@@ -24,12 +24,16 @@ jobs:
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;4.1.2" > /dev/null
           ls "$ANDROID_HOME/platforms"
+      - name: fm1-emu for Android (Rust)
+        run: |
+          rustup target add aarch64-linux-android x86_64-linux-android
+          NDK_VERSION=29.0.14206865 tools/build_fm1emu.sh
       - name: Tests and APK
         run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug
       - name: Name the APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk "ObsLoader-${GITHUB_REF_NAME//\//-}-debug.apk"
+        run: cp app/build/outputs/apk/debug/app-debug.apk "FM1-Emulator-${GITHUB_REF_NAME//\//-}-debug.apk"
       - uses: actions/upload-artifact@v4
         with:
-          name: ObsLoader-apk
-          path: ObsLoader-*-debug.apk
+          name: FM1-Emulator-apk
+          path: FM1-Emulator-*-debug.apk
 
