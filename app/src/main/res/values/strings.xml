@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FM-1 Pocket</string>
+    <string name="app_name">Pocket Synth Emulator</string>
     <string name="tab_firmwares">Firmwares</string>
     <string name="tab_device">FM-1</string>
     <string name="tab_sim">Play</string>
@@ -109,7 +109,7 @@
     <string name="about_fw_title">The firmwares</string>
     <string name="about_fw">Each belongs to its maker, under its own licence (mostly GPL-3.0 or MPL-2.0): the card names it and links the source at the release\'s tag. Packages come from the makers\' GitHub releases, never from the hub, and are installed only if their sha256 is the one the hub checked.</string>
     <string name="about_app_title">This app</string>
-    <string name="about_app">FM-1 Pocket is free software under the GPL-3.0: the panel, the sound and MIDI around the emulator, the list, the downloads and the installer. Not made by or affiliated with M-VAVE, The Firmware Hub or fm1-emu\'s author.</string>
+    <string name="about_app">Pocket Synth Emulator (FM-1 Pocket) is free software under the GPL-3.0: the panel, the sound and MIDI around the emulator, the list, the downloads and the installer. Not made by or affiliated with M-VAVE, The Firmware Hub or fm1-emu\'s author.</string>
     <string name="about_trademarks">M-VAVE and FM-1 are trademarks of their owners.</string>
     <string name="disclaimer">Unofficial firmware, free and without warranty: you install it at your own risk. Back up your projects first.</string>
     <string name="lib_title">On the phone</string>

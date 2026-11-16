@@ -42,7 +42,7 @@ fun AboutScreen(m: AppModel, mod: Modifier, open: (String) -> Unit) {
         }
     }
     Column(mod.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        Text("FM-1 Pocket " + BuildConfig.VERSION_NAME, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Amber)
+        Text(stringResource(R.string.app_name) + " " + BuildConfig.VERSION_NAME, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Amber)
         Text(stringResource(R.string.about_what), style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.credits_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

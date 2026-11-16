@@ -28,7 +28,7 @@ the app (About) and in `app/src/main/assets/licenses/fm1-emu-MIT.txt`.
 
 ## Install
 
-The APK is on the [releases](https://github.com/orianbsilva/fm1-pocket/releases): `FM-1-Pocket-VERSION.apk`,
+The APK is on the [releases](https://github.com/orianbsilva/fm1-pocket/releases): `Pocket-Synth-Emulator-VERSION.apk`,
 signed with the project's key (each version installs over the last). Android 8 or newer, 64-bit (arm64 or x86-64).
 
 ## Build

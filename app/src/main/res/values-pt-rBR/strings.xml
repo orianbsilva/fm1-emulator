@@ -108,7 +108,7 @@
     <string name="about_fw_title">Os firmwares</string>
     <string name="about_fw">Cada um é do seu autor, com a sua licença (quase todos GPL-3.0 ou MPL-2.0): o card diz qual e leva ao código na tag da release. Os pacotes vêm das releases dos autores no GitHub, nunca do hub, e só são instalados se o sha256 for o que o hub conferiu.</string>
     <string name="about_app_title">Este app</string>
-    <string name="about_app">O FM-1 Pocket é software livre sob a GPL-3.0: o painel, o som e o MIDI em volta do emulador, a lista, os downloads e o instalador. Não é feito pela M-VAVE, pelo The Firmware Hub nem pelo autor do fm1-emu, nem ligado a eles.</string>
+    <string name="about_app">O Pocket Synth Emulator (FM-1 Pocket) é software livre sob a GPL-3.0: o painel, o som e o MIDI em volta do emulador, a lista, os downloads e o instalador. Não é feito pela M-VAVE, pelo The Firmware Hub nem pelo autor do fm1-emu, nem ligado a eles.</string>
     <string name="about_trademarks">M-VAVE e FM-1 são marcas dos seus donos.</string>
     <string name="disclaimer">Firmware não oficial, gratuito e sem garantia: você instala por sua conta e risco. Faça backup dos seus projetos antes.</string>
     <string name="lib_title">No celular</string>
