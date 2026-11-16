@@ -20,9 +20,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
-      - name: Platform 37
-        run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0" || android sdk install platforms/android-37.0 build-tools/36.0.0
+      - name: Platform 37 (the runner's SDK)
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" > /dev/null
+          ls "$ANDROID_HOME/platforms"
       - name: Tests and APK
         run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug
       - name: Name the APK

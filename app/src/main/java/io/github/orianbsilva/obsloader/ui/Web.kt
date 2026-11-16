@@ -39,6 +39,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import io.github.orianbsilva.obsloader.midi.MidiBridge
 import io.github.orianbsilva.obsloader.AppModel
 import io.github.orianbsilva.obsloader.R
 import java.util.Locale
@@ -63,6 +69,10 @@ private class Assets(private val ctx: Context) : WebViewAssetLoader.PathHandler 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebScreen(url: String, close: () -> Unit) {
+    val ctx = LocalContext.current
+    val bridge = remember(url) { MidiBridge(ctx.applicationContext) }
+    DisposableEffect(bridge) { onDispose { bridge.close() } }
+    val origin = MidiBridge.originOf(url)
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(close) { Icon(Icons.Default.Close, stringResource(R.string.back)) }
@@ -79,7 +89,14 @@ fun WebScreen(url: String, close: () -> Unit) {
                 webViewClient = object : WebViewClient() {
                     override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse? =
                         loader.shouldInterceptRequest(req.url)
+                    // the page stays on its own site (the one MIDI was given to); a link elsewhere opens in the browser
+                    override fun shouldOverrideUrlLoading(view: WebView, req: WebResourceRequest): Boolean {
+                        if (MidiBridge.originOf(req.url.toString()) == origin) return false
+                        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(req.url.toString()))) }
+                        return true
+                    }
                 }
+                if (origin != null) bridge.attach(this, setOf(origin))
                 loadUrl(url)
             }
         }, onRelease = { it.destroy() })
@@ -95,6 +112,7 @@ fun SimScreen(m: AppModel, mod: Modifier, open: (String) -> Unit) {
                 Column(Modifier.padding(14.dp)) {
                     Text("ObsSynth FM-1", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Amber)
                     Text(stringResource(R.string.sim_builtin), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.sim_midi), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                     Button({ open(builtInSim()) }, Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.sim_open)) }
                 }
             }

@@ -111,4 +111,19 @@
     <string name="about_app">O ObsLoader é software livre sob a GPL-3.0. O instalador segue o do Felucca (Leo Kuroshita, Hügelton Instruments), como o ObsSynth FM-1 o traz. Não é feito pela M-VAVE nem pelo The Firmware Hub, nem ligado a eles.</string>
     <string name="about_trademarks">M-VAVE e FM-1 são marcas dos seus donos.</string>
     <string name="disclaimer">Firmware não oficial, gratuito e sem garantia: você instala por sua conta e risco. Faça backup dos seus projetos antes.</string>
+    <string name="lib_title">No celular</string>
+    <string name="lib_running">no FM-1</string>
+    <string name="lib_installed">instalado %1$s</string>
+    <string name="lib_switch">Trocar</string>
+    <string name="lib_reinstall">Reinstalar</string>
+    <string name="kb_title">Tocar com um teclado MIDI</string>
+    <string name="kb_help">Um teclado no celular toca o FM-1 (notas, rodas, controles; não SysEx). Por USB, os dois precisam de um hub OTG; um teclado Bluetooth que o Android conhece também funciona. Em Tocar, o teclado toca os simuladores.</string>
+    <string name="kb_none">Nenhum teclado MIDI encontrado.</string>
+    <string name="kb_refresh">Procurar de novo</string>
+    <string name="kb_play">Tocar o FM-1</string>
+    <string name="kb_stop">Parar</string>
+    <string name="kb_active">Tocando: %1$s</string>
+    <string name="thru_gone">O teclado sumiu.</string>
+    <string name="thru_failed">O teclado ou o FM-1 não abriu (outro app usando?).</string>
+    <string name="sim_midi">Um teclado MIDI no celular (USB por um hub OTG, ou Bluetooth) toca os simuladores: ligue o simulador e toque.</string>
 </resources>

@@ -24,6 +24,8 @@ import io.github.orianbsilva.obsloader.hub.Firmware
 import io.github.orianbsilva.obsloader.hub.PackageStore
 import io.github.orianbsilva.obsloader.hub.PictureStore
 import io.github.orianbsilva.obsloader.hub.RateLimited
+import io.github.orianbsilva.obsloader.midi.Thru
+import android.media.midi.MidiDeviceInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -70,6 +72,38 @@ class AppModel(app: Application) : AndroidViewModel(app) {
     var progress by mutableStateOf<Float?>(null); private set
     val log = mutableStateListOf<String>()
     var message by mutableStateOf<String?>(null)
+
+    // a MIDI keyboard playing the FM-1 through the phone
+    private val thru = Thru(app)
+    var thruFrom by mutableStateOf<String?>(null); private set
+    var keyboards by mutableStateOf<List<Pair<Int, String>>>(emptyList()); private set
+
+    /** the MIDI devices that are not an FM-1 (keyboards, controllers, Bluetooth ones Android knows) */
+    fun refreshKeyboards() {
+        val fm = usb.candidates().map { it.id }.toSet()
+        keyboards = usb.devices().filter { it.id !in fm && it.outputPortCount > 0 }.map { it.id to io.github.orianbsilva.obsloader.fm1.MidiLink.nameOf(it) }
+    }
+
+    fun startThru(keyboardId: Int) {
+        if (installing || probing) return
+        viewModelScope.launch {
+            val kb = usb.devices().firstOrNull { it.id == keyboardId }
+            val fm = usb.candidates().firstOrNull()
+            when {
+                kb == null -> message = s(R.string.thru_gone)
+                fm == null -> message = notFound()
+                thru.start(kb, fm) -> thruFrom = io.github.orianbsilva.obsloader.fm1.MidiLink.nameOf(kb) + " → " + io.github.orianbsilva.obsloader.fm1.MidiLink.nameOf(fm)
+                else -> message = s(R.string.thru_failed)
+            }
+        }
+    }
+
+    fun stopThru() { thru.stop(); thruFrom = null }
+
+    override fun onCleared() { thru.stop() }
+
+    /** when each firmware was last installed from the phone (for the library's order) */
+    fun installedAt(id: String) = prefs.getLong("at.$id", 0L)
 
     private val res get() = getApplication<Application>().resources
     private fun s(id: Int, vararg a: Any) = res.getString(id, *a)
@@ -181,6 +215,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
 
     fun probe() {
         if (probing || installing) return
+        stopThru()
         probing = true
         viewModelScope.launch {
             try {
@@ -223,8 +258,12 @@ class AppModel(app: Application) : AndroidViewModel(app) {
         prepare(name, raw, known)
     }
 
+    private var pendingId: String? = null
+
     private fun prepare(label: String, raw: ByteArray, f: Firmware?) {
         if (installing || probing) return
+        stopThru()
+        pendingId = f?.id ?: if (Wire.sha256(raw) == Wire.STOCK_V15_SHA256) PackageStore.STOCK_ID else null
         val product = Wire.productOf(raw)
         if (product == null || !Regex("[^_]+_\\d+").matches(product)) { message = s(R.string.err_notpkg); return }
         val sha = Wire.sha256(raw)
@@ -255,6 +294,17 @@ class AppModel(app: Application) : AndroidViewModel(app) {
 
     fun cancelPending() { pending = null }
 
+    /** the firmware the FM-1 runs, as far as the app knows: the one it last installed if the identity is still its,
+     *  else the list's firmwares with that identity */
+    fun running(): List<String> {
+        val d = device ?: return emptyList()
+        val last = prefs.getString("running", null)
+        val cat = catalog?.firmwares.orEmpty()
+        if (last != null && (cat.firstOrNull { it.id == last }?.product == d.text || (last == PackageStore.STOCK_ID && d.text == catalog?.stock?.product)))
+            return listOf(last)
+        return cat.filter { it.product == d.text }.map { it.id } + if (d.text == catalog?.stock?.product) listOf(PackageStore.STOCK_ID) else emptyList()
+    }
+
     fun install() {
         val p = pending ?: return
         pending = null
@@ -267,6 +317,7 @@ class AppModel(app: Application) : AndroidViewModel(app) {
                 val d = updater.find() ?: throw InstallError(InstallError.Code.NOT_FOUND, notFound())
                 val got = updater.install(d, image, p.product) { st -> onStep(st) }
                 device = Identity(got, Wire.modelOf(got), 0); step = s(R.string.step_done, got); progress = 1f
+                pendingId?.let { prefs.edit().putLong("at.$it", System.currentTimeMillis()).putString("running", it).apply() }
                 log += s(R.string.step_done, got)
             } catch (e: InstallError) {
                 step = s(R.string.step_failed); progress = null

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -76,16 +77,46 @@ fun DeviceScreen(m: AppModel, mod: Modifier) {
                     Text(stringResource(label), style = MaterialTheme.typography.bodyMedium)
                 }
         }
-        Section(stringResource(R.string.inst_title)) {
-            val cat = m.catalog
-            val mine = cat?.firmwares?.filter { m.onPhone[it.id] == it.sha256 }.orEmpty()
+        Section(stringResource(R.string.lib_title)) {
+            // the firmwares on the phone: the one on the FM-1 first, then the last installed; one touch switches
+            val running = m.running()
+            val mine = m.catalog?.firmwares?.filter { m.onPhone[it.id] == it.sha256 }.orEmpty()
+                .sortedWith(compareByDescending<io.github.orianbsilva.obsloader.hub.Firmware> { it.id in running }.thenByDescending { m.installedAt(it.id) })
             if (mine.isEmpty()) Text(stringResource(R.string.inst_none), style = MaterialTheme.typography.bodySmall)
-            for (f in mine) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(f.name + " " + f.version, Modifier.weight(1f))
-                TextButton({ m.prepare(f) }, enabled = !busy && !(f.chip == "old" && m.chip == Chip.NEWER)) { Text(stringResource(R.string.install)) }
+            for (f in mine) Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                Picture(m, f, 36)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(f.name + " " + f.version, color = colourOf(f), fontWeight = FontWeight.Bold)
+                    val at = m.installedAt(f.id)
+                    Text(when {
+                        f.id in running -> stringResource(R.string.lib_running)
+                        at > 0 -> stringResource(R.string.lib_installed, java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(at)))
+                        else -> f.product
+                    }, style = MaterialTheme.typography.labelSmall, color = if (f.id in running) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                val blocked = f.chip == "old" && m.chip == Chip.NEWER
+                if (f.id in running) TextButton({ m.prepare(f) }, enabled = !busy && !blocked) { Text(stringResource(R.string.lib_reinstall)) }
+                else Button({ m.prepare(f) }, enabled = !busy && !blocked) { Text(stringResource(R.string.lib_switch)) }
             }
             HorizontalDivider(Modifier.padding(vertical = 6.dp))
             OutlinedButton({ pick.launch(arrayOf("*/*")) }, enabled = !busy) { Text(stringResource(R.string.inst_file)) }
+        }
+        Section(stringResource(R.string.kb_title)) {
+            Text(stringResource(R.string.kb_help), style = MaterialTheme.typography.bodySmall)
+            androidx.compose.runtime.LaunchedEffect(Unit) { m.refreshKeyboards() }
+            val on = m.thruFrom
+            if (on != null) {
+                Text(stringResource(R.string.kb_active, on), color = MaterialTheme.colorScheme.secondary)
+                OutlinedButton({ m.stopThru() }) { Text(stringResource(R.string.kb_stop)) }
+            } else {
+                if (m.keyboards.isEmpty()) Text(stringResource(R.string.kb_none), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                for ((id, name) in m.keyboards) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(name, Modifier.weight(1f))
+                    TextButton({ m.startThru(id) }, enabled = !busy) { Text(stringResource(R.string.kb_play)) }
+                }
+                TextButton({ m.refreshKeyboards() }) { Text(stringResource(R.string.kb_refresh)) }
+            }
         }
         Section(stringResource(R.string.back_title)) {
             Text(stringResource(R.string.back_help), style = MaterialTheme.typography.bodySmall)
